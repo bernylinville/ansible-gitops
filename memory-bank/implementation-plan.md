@@ -170,7 +170,8 @@ roles:
   - geerlingguy.docker
 ```
 
-- 验证：SSH 到服务器执行 `docker --version`、`docker compose version`；非 root 用户 `docker ps` 可用。
+- 验证：使用 Molecule (Vagrant Driver) 进行本地测试，避免 Docker-in-Docker 问题。
+- 生产验证：SSH 到服务器执行 `docker --version`、`docker compose version`；非 root 用户 `docker ps` 可用。
 
 ---
 
@@ -256,7 +257,7 @@ app_stack_enabled: false # 默认关闭，后续按主机/服务打开
 ## 验收清单（阶段性）
 
 - M3：仅密钥登录；自定义 SSH 端口与 `ansible_port`/Vault 记录一致，且仅该端口对外开放。
-- M4：Docker/Compose 可用；非 root 用户可运行 docker。
+- M4：Docker/Compose 可用；非 root 用户可运行 docker；Molecule 测试通过（Vagrant）。
 - M5：Cloudflared 容器 Healthy；业务网络 `proxy_net` 存在；按 host_vars 中 `cloudflared_enabled` 控制启用范围。
 - M6：Actions 绿灯；lint 独立；Galaxy 角色/collections 可缓存；`known_hosts` 由 `ssh-keyscan` 生成。
 - M7：预留 app stack 结构存在但默认关闭；未来选定具体 self-hosted 服务后可在不破坏已有结构的前提下增量接入。

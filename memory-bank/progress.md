@@ -74,3 +74,9 @@ Next dev can proceed with M1 Step 2 once any additional validation is complete.
     - Molecule environment is configured (`molecule/default`).
     - `molecule list` confirms the driver and platform settings.
     - Test progress is now tracked in `memory-bank/molecule-tests.md`.
+
+## 2025-11-25 – M4 Step 1 (Docker Integration)
+
+- **Action**: Added `geerlingguy.docker` to `playbooks/site.yml`.
+- **Verification**: Updated `molecule/default/verify.yml` to include checks for Docker and Docker Compose versions.
+- **Next Steps**: Run `molecule test` to verify the full stack (Security + Firewall + Docker).

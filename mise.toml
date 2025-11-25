@@ -1,4 +1,4 @@
 [tools]
-ansible = "13.0.0"
+ansible = "system"
 pipx = "1.8.0"
 python = "3.13.9"

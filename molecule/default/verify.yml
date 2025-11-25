@@ -36,3 +36,25 @@
         that:
           - iptables_status.stdout is search('dpt:22')
         fail_msg: "SSH port 22 is not allowed in iptables"
+
+    - name: Check Docker version
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Assert Docker is installed
+      ansible.builtin.assert:
+        that:
+          - docker_version.rc == 0
+        fail_msg: "Docker is not installed"
+
+    - name: Check Docker Compose version
+      ansible.builtin.command: docker compose version
+      register: compose_version
+      changed_when: false
+
+    - name: Assert Docker Compose is installed
+      ansible.builtin.assert:
+        that:
+          - compose_version.rc == 0
+        fail_msg: "Docker Compose is not installed"

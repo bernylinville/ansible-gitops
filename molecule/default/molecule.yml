@@ -6,24 +6,19 @@ dependency:
     role-file: ${MOLECULE_PROJECT_DIRECTORY}/requirements.yml
     requirements-file: ${MOLECULE_PROJECT_DIRECTORY}/collections/requirements.yml
 driver:
-  name: docker
+  name: vagrant
+  provider:
+    name: libvirt
 scenario:
   name: default
 
 platforms:
   - name: debian13
-    image: "bernylinville/docker-debian13-ansible:latest"
-    command: ${MOLECULE_DOCKER_COMMAND:-""}
+    box: jtarpley/debian13_base
+    memory: 1024
+    cpus: 2
     groups:
       - vps
-    privileged: true
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:rw
-    tmpfs:
-      - /run
-      - /tmp
-    cgroupns_mode: host
-    pre_build_image: true
 provisioner:
   name: ansible
   inventory:

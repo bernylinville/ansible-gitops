@@ -4,3 +4,7 @@ collections:
     version: 5.0.2
   - name: ansible.posix
     version: 2.1.0
+  - name: community.general
+    version: 10.1.0
+  - name: community.vagrant
+    version: 0.0.0
