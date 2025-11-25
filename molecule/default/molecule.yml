@@ -9,12 +9,7 @@ driver:
   name: docker
 scenario:
   name: default
-ansible:
-  playbooks:
-    converge: ${MOLECULE_PLAYBOOK:-converge.yml}
-    verify: verify.yml
-  env:
-    PATH: "${MOLECULE_PROJECT_DIRECTORY}/.venv/bin:${PATH}"
+
 platforms:
   - name: debian13
     image: "bernylinville/docker-debian13-ansible:latest"
@@ -35,5 +30,11 @@ provisioner:
     links:
       host_vars: host_vars
       group_vars: group_vars
+  playbooks:
+    converge: ${MOLECULE_PLAYBOOK:-converge.yml}
+    prepare: prepare.yml
+    verify: verify.yml
+  env:
+    PATH: "${MOLECULE_PROJECT_DIRECTORY}/.venv/bin:${PATH}"
 verifier:
   name: ansible

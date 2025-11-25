@@ -63,3 +63,14 @@ Next dev can proceed with M1 Step 2 once any additional validation is complete.
 - Added a project-level Molecule scenario under `molecule/default/` that reuses `playbooks/site.yml` against the `bernylinville/docker-debian13-ansible:latest` image, mirroring the production inventory structure without leaking secrets.
 - Brought over representative `group_vars`/`host_vars` for the virtual `vps` group (Docker, security, firewall knobs) and lightweight `verify.yml` assertions to ensure fail2ban + UFW are active inside the container.
 - Developers can now validate changes locally with `molecule test` (Docker required) before touching real hosts/KVM VMs, giving the “即开即毁” workflow requested.
+
+## 2025-11-25 – M1-M3 Verification & Molecule Status
+
+- **Verification Complete**: Verified that all deliverables for M1, M2, and M3 are present and correctly configured.
+    - **M1**: Directory structure, `ansible.cfg`, and `requirements.yml` are correct.
+    - **M2**: Inventory and `playbooks/site.yml` bootstrap are in place.
+    - **M3**: Security/Firewall roles integrated, Fail2ban/Unattended-upgrades configured, Molecule scenario created.
+- **Molecule Status**:
+    - Molecule environment is configured (`molecule/default`).
+    - `molecule list` confirms the driver and platform settings.
+    - Test progress is now tracked in `memory-bank/molecule-tests.md`.

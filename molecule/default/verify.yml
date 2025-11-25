@@ -14,14 +14,25 @@
           - fail2ban_status.stdout.strip() == "active"
         fail_msg: "fail2ban service is not active"
 
-    - name: Inspect UFW status output
-      ansible.builtin.command: ufw status
-      register: ufw_status
+    - name: Check firewall service status
+      ansible.builtin.command: systemctl is-active firewall
+      register: firewall_status
       changed_when: false
 
-    - name: Assert UFW is active and SSH port allowed
+    - name: Assert firewall is active
       ansible.builtin.assert:
         that:
-          - "Status: active" in ufw_status.stdout
-          - ufw_status.stdout is search('22/tcp')
-        fail_msg: "UFW is not active or SSH port missing"
+          - firewall_status.stdout.strip() == "active"
+        fail_msg: "firewall service is not active"
+
+    - name: Check iptables rules
+      ansible.builtin.command: iptables -L INPUT -n
+      register: iptables_status
+      changed_when: false
+      become: true
+
+    - name: Assert SSH port is allowed in iptables
+      ansible.builtin.assert:
+        that:
+          - iptables_status.stdout is search('dpt:22')
+        fail_msg: "SSH port 22 is not allowed in iptables"
