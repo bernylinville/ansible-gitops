@@ -1,4 +1,5 @@
 [tools]
 ansible = "latest"
 pipx = "latest"
+python = "3.13"
 uv = "latest"

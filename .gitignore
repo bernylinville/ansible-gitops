@@ -10,3 +10,6 @@ roles/geerlingguy.firewall/
 .vault-password
 .sudo-password
 .sudo-password
+
+.agent/
+.vscode/
