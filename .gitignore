@@ -1,0 +1,7 @@
+# Ansible working directory scratch space
+.ansible/
+
+# Galaxy roles are installed locally via `ansible-galaxy install -r requirements.yml`
+roles/geerlingguy.docker/
+roles/geerlingguy.security/
+roles/geerlingguy.firewall/
