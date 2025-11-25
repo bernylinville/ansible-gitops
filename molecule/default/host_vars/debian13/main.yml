@@ -1,0 +1,3 @@
+---
+cloudflared_enabled: false
+app_stack_enabled: false
