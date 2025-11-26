@@ -16,3 +16,5 @@ roles/geerlingguy.firewall/
 .spec-workflow/
 
 cloudflare-tunnel.json
+
+.DS_Store
