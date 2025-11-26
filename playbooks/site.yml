@@ -24,5 +24,12 @@
     - geerlingguy.firewall
     - geerlingguy.docker
     - docker_shared_network
+    - prometheus.prometheus.node_exporter
+    - role: prometheus.prometheus.prometheus
+      when: prometheus_enabled | default(false)
+    - role: prometheus.prometheus.alertmanager
+      when: alertmanager_enabled | default(false)
+    - role: grafana.grafana.grafana
+      when: grafana_enabled | default(false)
     - role: cloudflared
       when: cloudflared_enabled | default(false)

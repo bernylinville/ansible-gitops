@@ -20,7 +20,6 @@ cloudflared_config_container_path: /etc/cloudflared/config.yml
 cloudflared_credentials_container_path: /etc/cloudflared/credentials.json
 cloudflared_container_user: "root"
 
-docker_shared_network_name: proxy_net
 cloudflared_extra_networks: []
 
 cloudflared_tunnel_id: ""

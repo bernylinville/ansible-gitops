@@ -1,3 +1,87 @@
 ---
 cloudflared_enabled: true
+cloudflared_data_directory: /opt/cloudflared
+cloudflared_image_tag: "2025.11.1"
+cloudflared_tunnel_domain_name: "{{ domain_name }}"
+cloudflared_container_name: cloudflared
+cloudflared_whoami_enabled: true
+cloudflared_verify_whoami: "{{ lookup('env', 'MOLECULE_CLOUDFLARE_VERIFY') | default('true', true) | bool }}"
+cloudflared_whoami_container_name: cloudflared-whoami
+cloudflared_whoami_service_host: "{{ cloudflared_whoami_container_name }}"
+cloudflared_whoami_service_port: 80
+cloudflared_ingress_rules:
+  - hostname: "whoami.{{ cloudflared_tunnel_domain_name }}"
+    service: "http://{{ cloudflared_whoami_service_host }}:{{ cloudflared_whoami_service_port }}"
+  - service: "http_status:404"
 app_stack_enabled: false
+prometheus_enabled: true
+alertmanager_enabled: true
+grafana_enabled: true
+firewall_allowed_tcp_ports:
+  - "{{ security_ssh_port | default(22) }}"
+  - "{{ node_exporter_listen_port }}"
+  - 9093
+  - 3000
+prometheus_version: 3.7.3
+prometheus_storage_retention: "31d"
+prometheus_config_dir: /etc/prometheus
+prometheus_alertmanager_config:
+  - static_configs:
+      - targets:
+          - "{{ ansible_fqdn | default(ansible_host) | default(inventory_hostname) }}:9093"
+prometheus_targets:
+  node:
+    - targets: "{{ groups['vps'] | default([]) | map('extract', hostvars, 'prometheus_node_exporter_target') | list }}"
+      labels:
+        env: molecule
+prometheus_scrape_configs:
+  - job_name: "prometheus"
+    metrics_path: "{{ prometheus_metrics_path }}"
+    static_configs:
+      - targets:
+          - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:9090"
+  - job_name: "node"
+    file_sd_configs:
+      - files:
+          - "{{ prometheus_config_dir }}/file_sd/node.yml"
+  - job_name: "alertmanager"
+    static_configs:
+      - targets:
+          - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:9093"
+  - job_name: "grafana"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets:
+          - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:3000"
+alertmanager_version: 0.29.0
+alertmanager_route:
+  receiver: "default-route"
+  group_by:
+    - alertname
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+alertmanager_receivers:
+  - name: "default-route"
+grafana_version: "12.3.0"
+grafana_admin_user: "kchou"
+# grafana_admin_password lives in secrets.yml for Molecule host_vars
+alertmanager_config_dir: /etc/alertmanager
+monitoring_grafana_datasources_path: /etc/grafana/provisioning/datasources/datasources.yml
+grafana_ini:
+  server:
+    http_port: 3000
+    domain: "{{ grafana_domain_name }}"
+    root_url: "https://{{ grafana_domain_name }}"
+    serve_from_sub_path: false
+  security:
+    admin_user: "{{ grafana_admin_user }}"
+    admin_password: "{{ grafana_admin_password }}"
+grafana_datasources:
+  - name: "Prometheus"
+    type: prometheus
+    access: proxy
+    url: "http://localhost:9090"
+    isDefault: true
+    jsonData:
+      timeInterval: "30s"

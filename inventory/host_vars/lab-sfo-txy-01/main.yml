@@ -2,4 +2,88 @@
 # lab-sfo-txy-01 专属变量；连接端口引用 secrets.yml 里的 security_ssh_port。
 ansible_port: "{{ security_ssh_port }}"
 cloudflared_enabled: true
+# Cloudflared host-specific configuration
+cloudflared_data_directory: /opt/cloudflared
+cloudflared_image_tag: "2025.11.1"
+cloudflared_tunnel_domain_name: "{{ domain_name }}"
+cloudflared_container_name: cloudflared
+cloudflared_whoami_enabled: false
+cloudflared_verify_whoami: false
+# Cloudflared routes Grafana through the Docker host alias; adjust when more services are onboarded.
+cloudflared_ingress_rules:
+  - hostname: "{{ grafana_domain_name }}"
+    service: "http://host.docker.internal:3000"
+  - service: "http_status:404"
 app_stack_enabled: false
+prometheus_enabled: true
+alertmanager_enabled: true
+grafana_enabled: true
+
+prometheus_version: 3.7.3
+# Prometheus configuration (retain ~1 month of metrics)
+prometheus_storage_retention: "31d"
+prometheus_config_dir: /etc/prometheus
+prometheus_alertmanager_config:
+  - static_configs:
+      - targets:
+          - "{{ ansible_fqdn | default(ansible_host) | default(inventory_hostname) }}:9093"
+prometheus_targets:
+  node:
+    - targets: "{{ groups['vps'] | default([]) | map('extract', hostvars, 'prometheus_node_exporter_target') | list }}"
+      labels:
+        env: lab
+prometheus_scrape_configs:
+  - job_name: "prometheus"
+    metrics_path: "{{ prometheus_metrics_path }}"
+    static_configs:
+      - targets:
+          - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:9090"
+  - job_name: "node"
+    file_sd_configs:
+      - files:
+          - "{{ prometheus_config_dir }}/file_sd/node.yml"
+  - job_name: "alertmanager"
+    static_configs:
+      - targets:
+          - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:9093"
+  - job_name: "grafana"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets:
+          - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:3000"
+
+alertmanager_version: 0.29.0
+# Alertmanager baseline routing
+alertmanager_route:
+  receiver: "default-route"
+  group_by:
+    - alertname
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+alertmanager_receivers:
+  - name: "default-route"
+
+# Grafana provisioning
+grafana_version: "12.3.0"
+grafana_admin_user: "kchou"
+# grafana_admin_password is sourced from inventory/host_vars/lab-sfo-txy-01/secrets.yml
+alertmanager_config_dir: /etc/alertmanager
+monitoring_grafana_datasources_path: /etc/grafana/provisioning/datasources/datasources.yml
+grafana_ini:
+  server:
+    http_port: 3000
+    domain: "{{ grafana_domain_name }}"
+    root_url: "https://{{ grafana_domain_name }}"
+    serve_from_sub_path: false
+  security:
+    admin_user: "{{ grafana_admin_user }}"
+    admin_password: "{{ grafana_admin_password }}"
+grafana_datasources:
+  - name: "Prometheus"
+    type: prometheus
+    access: proxy
+    url: "http://localhost:9090"
+    isDefault: true
+    jsonData:
+      timeInterval: "30s"

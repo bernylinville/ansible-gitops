@@ -6,4 +6,7 @@ collections:
     version: 2.1.0
   - name: community.general
     version: 10.1.0
-  - name: community.vagrant
+  - name: prometheus.prometheus
+    version: 0.27.4
+  - name: grafana.grafana
+    version: 6.0.6

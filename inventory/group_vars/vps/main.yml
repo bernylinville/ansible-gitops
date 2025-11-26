@@ -18,6 +18,7 @@ docker_daemon_options:
     max-size: "100m"
 firewall_allowed_tcp_ports:
   - "{{ security_ssh_port | default(22) }}"
+  - "{{ node_exporter_listen_port }}"
 firewall_state: started
 firewall_enabled_at_boot: true
 security_ssh_password_authentication: "no"
@@ -44,17 +45,5 @@ docker_shared_network_ipam_config:
   - subnet: "{{ docker_shared_network_subnet }}"
     gateway: "{{ docker_shared_network_gateway }}"
 
-# Cloudflared defaults
-cloudflared_data_directory: /opt/cloudflared
-cloudflared_image_tag: "2025.11.1"
-cloudflared_tunnel_domain_name: "devopsthink.org" # TODO: 替换为 Cloudflare Access 域名
-cloudflared_verify_whoami: false
-cloudflared_whoami_enabled: true
-cloudflared_whoami_container_name: cloudflared-whoami
-cloudflared_whoami_service_host: "{{ cloudflared_whoami_container_name }}"
-cloudflared_whoami_service_port: 80
-cloudflared_ingress_rules:
-  - hostname: "whoami.{{ cloudflared_tunnel_domain_name }}"
-    service: "http://{{ cloudflared_whoami_service_host }}:{{ cloudflared_whoami_service_port }}"
-  - hostname: "devopsthink.org"
-    service: "http_status:404"
+# Monitoring defaults
+grafana_domain_name: "grafana.{{ domain_name }}"

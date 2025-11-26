@@ -47,6 +47,12 @@
 3.  **`geerlingguy.firewall`**:
     - 负责：管理 `ufw`。
     - 策略：默认 `incoming: deny`，`outgoing: allow`，仅放行 SSH 端口。
+4.  **`prometheus.prometheus` Collection**:
+    - 负责：部署 Prometheus、Alertmanager 以及周边 Exporter；我们使用其中的 `prometheus`/`alertmanager` role。
+    - 策略：锁定 `0.27.4`，利用 `prometheus.yaml` 默认变量作为配置模板，自定义保留期、Targets 与 Alertmanager 路由。
+5.  **`grafana.grafana` Collection**:
+    - 负责：安装/配置 Grafana Server、Datasource/Dashboard 预配。
+    - 策略：锁定 `1.5.8`，通过 `grafana_ini` 设置管理员凭据和域名，借助 `grafana_datasources` 注册默认 Prometheus 数据源。
 
 ### 3.4 网络与应用层 (Networking & Runtime)
 

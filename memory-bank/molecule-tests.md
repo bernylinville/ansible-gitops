@@ -32,3 +32,12 @@ This document tracks the progress of Molecule testing for the Ansible GitOps pro
     - `cloudflared_verify_whoami` 在 Molecule 默认开启（除非显式设置 `MOLECULE_CLOUDFLARE_VERIFY=false`），运行过程中会多次尝试 `https://whoami.<domain>`，帮助发现 Cloudflare 隧道/证书传播造成的抖动。
 - **Next Steps**:
     - Export `MOLECULE_CLOUDFLARE_VERIFY=true` and run `molecule test` after providing valid Cloudflare credentials to validate end-to-end tunnel reachability.
+
+### 2025-11-27
+- **Status**: Monitoring stack coverage
+- **Verification**:
+    - Host vars enable Prometheus/Alertmanager/Grafana inside the scenario with identical settings to production (storage retention 31d, Alertmanager route, Grafana datasource).
+    - `verify.yml` now gathers service facts, checks Prometheus retention flags via `systemctl cat`, ensures `file_sd/node.yml` exists, and exercises HTTP readiness endpoints for Prometheus/Alertmanager plus Grafana's login path.
+    - Datasource provisioning file (`/etc/grafana/provisioning/datasources/datasources.yml`) is slurped and asserted to point at `http://localhost:9090`.
+- **Next Steps**:
+    - 在 `molecule/default/host_vars/debian13/secrets.yml`（可使用 Vault）写入 `grafana_admin_password` 后运行 `molecule converge && molecule verify`，验证监控栈在全新环境中的可重复性。

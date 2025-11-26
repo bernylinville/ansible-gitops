@@ -14,7 +14,8 @@
 - Bootstrap (local venv):
   ```bash
   python3 -m venv .venv && source .venv/bin/activate
-  pip install ansible ansible-lint yamllint molecule[docker] pre-commit
+  pip install -r requirements.txt
+  ansible-galaxy -r requirements.yml
   ansible-galaxy collection install -r collections/requirements.yml
   ```
 - Lint fast: `ansible-lint` and `yamllint .`
@@ -32,6 +33,7 @@
 
 - Use Molecule per role (`roles/<role>/molecule/<scenario>`). Include converge + idempotence.
 - For inventory/playbook checks, run `--check --diff` and capture output in PRs.
+- Every newly added or modified playbook YAML must pass `ansible-lint` before commit; activate the local virtualenv via `source .venv/bin/activate` and lint the touched files/playbooks.
 - Optional verify with Testinfra/PyTest in Molecule `verify.yml` or `tests/`.
 
 ## Commit & Pull Request Guidelines

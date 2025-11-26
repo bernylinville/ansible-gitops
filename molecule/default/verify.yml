@@ -59,6 +59,37 @@
           - compose_version.rc == 0
         fail_msg: "Docker Compose is not installed"
 
+    - name: Gather node_exporter service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert node_exporter service is active
+      ansible.builtin.assert:
+        that:
+          - "'node_exporter.service' in ansible_facts.services"
+          - ansible_facts.services['node_exporter.service'].state == 'running'
+        fail_msg: "node_exporter service is not running"
+
+    - name: Check node_exporter port
+      ansible.builtin.wait_for:
+        port: 9100
+        state: started
+        timeout: 5
+
+    - name: Query node_exporter metrics
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:9100/metrics"
+        method: GET
+        status_code: 200
+        timeout: 5
+      register: node_exporter_metrics
+      changed_when: false
+
+    - name: Assert node_exporter metrics are reachable
+      ansible.builtin.assert:
+        that:
+          - node_exporter_metrics.status == 200
+        fail_msg: "node_exporter metrics endpoint is unreachable"
+
     - name: Inspect shared proxy network
       community.docker.docker_network_info:
         name: "{{ docker_shared_network_name }}"
@@ -136,3 +167,107 @@
       when:
         - cloudflared_verify_whoami | default(false)
         - cloudflared_whoami_enabled | default(false)
+
+    - name: Gather monitoring service facts
+      ansible.builtin.service_facts:
+
+    - name: Assert monitoring services are active
+      ansible.builtin.assert:
+        that:
+          - "'prometheus.service' in ansible_facts.services"
+          - ansible_facts.services['prometheus.service'].state == 'running'
+          - "'alertmanager.service' in ansible_facts.services"
+          - ansible_facts.services['alertmanager.service'].state == 'running'
+          - "'grafana-server.service' in ansible_facts.services"
+          - ansible_facts.services['grafana-server.service'].state == 'running'
+        fail_msg: "Prometheus/Alertmanager/Grafana services are not running"
+
+    - name: Inspect Prometheus unit
+      ansible.builtin.command: systemctl cat prometheus
+      register: prometheus_unit
+      changed_when: false
+
+    - name: Assert Prometheus retention flag
+      ansible.builtin.assert:
+        that:
+          - "'--storage.tsdb.retention.time={{ prometheus_storage_retention }}' in prometheus_unit.stdout"
+        fail_msg: "Prometheus retention CLI flag missing or incorrect"
+
+    - name: Check Prometheus node SD file
+      ansible.builtin.stat:
+        path: "{{ prometheus_config_dir }}/file_sd/node.yml"
+      register: prometheus_file_sd
+
+    - name: Assert node service discovery file exists
+      ansible.builtin.assert:
+        that:
+          - prometheus_file_sd.stat.exists
+          - prometheus_file_sd.stat.size > 0
+        fail_msg: "Prometheus node service-discovery file missing"
+
+    - name: Query Prometheus readiness endpoint
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:9090/-/ready"
+        method: GET
+        status_code: 200
+        timeout: 15
+      register: prometheus_ready
+      changed_when: false
+      retries: 6
+      delay: 5
+      until:
+        - prometheus_ready.status is defined
+        - prometheus_ready.status == 200
+
+    - name: Query Alertmanager readiness endpoint
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:9093/-/ready"
+        method: GET
+        status_code: 200
+        timeout: 15
+      register: alertmanager_ready
+      changed_when: false
+      retries: 6
+      delay: 5
+      until:
+        - alertmanager_ready.status is defined
+        - alertmanager_ready.status == 200
+
+    - name: Query Grafana login page
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:3000/login"
+        method: GET
+        status_code: [200, 302]
+        timeout: 15
+      register: grafana_login
+      changed_when: false
+      retries: 6
+      delay: 5
+      until:
+        - grafana_login.status is defined
+        - grafana_login.status in [200, 302]
+
+    - name: Stat Alertmanager configuration
+      ansible.builtin.stat:
+        path: "{{ alertmanager_config_dir }}/config.yml"
+      register: alertmanager_config
+
+    - name: Assert Alertmanager configuration rendered
+      ansible.builtin.assert:
+        that:
+          - alertmanager_config.stat.exists
+          - alertmanager_config.stat.size > 0
+        fail_msg: "Alertmanager config missing"
+      ignore_errors: true
+
+    - name: Validate Grafana datasource provisioning
+      ansible.builtin.slurp:
+        path: "{{ monitoring_grafana_datasources_path }}"
+      register: grafana_datasource_file
+      ignore_errors: true
+
+    - name: Assert Grafana datasource points to Prometheus
+      ansible.builtin.assert:
+        that:
+          - grafana_datasource_file.content | b64decode | regex_search('http://localhost:9090')
+        fail_msg: "Grafana datasource missing Prometheus URL"

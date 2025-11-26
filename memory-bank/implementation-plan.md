@@ -224,7 +224,18 @@ roles:
 
 - `cloudflared_tunnel_credentials_json` 由 Vault 解密提供，无需 CLI `--extra-vars`，Role 会从 JSON 自动解析 `TunnelID`，只有在需要覆盖默认值时才显式设置 `cloudflared_tunnel_id`。
 - 验证：`docker ps` 容器 Up；`docker logs cloudflared` 含 "Registered tunnel connection"；Cloudflare 控制台显示 Healthy；部署 `whoami` 容器并通过 `curl https://whoami.<domain>`/Ansible `uri` 模块（受 `cloudflared_verify_whoami` 控制）验证 Ingress。Molecule 场景可通过设定 `MOLECULE_CLOUDFLARE_VERIFY=true` 重用生产 Vault secrets 触发相同测试。
-- 验证容器：默认同时运行 `traefik/whoami` 并加入共享网络，域名 `whoami.<cloudflared_tunnel_domain_name>` 用于快速 `curl` 健康检查，验证完毕后可通过变量关闭。
+- 验证容器：仅在 Molecule 或调试场景下开启 `cloudflared_whoami_enabled`，域名 `whoami.<cloudflared_tunnel_domain_name>` 用于快速 `curl` 健康检查；生产主机默认关闭此容器，仅保留业务 Ingress 与 `http_status:404` 兜底。
+
+### M5 Step 2：监控栈（lab-sfo-txy-01）
+
+- 对监控主机开启 `prometheus_enabled`、`alertmanager_enabled`、`grafana_enabled`，Playbook 末尾串联 `prometheus.prometheus.prometheus` → `prometheus.prometheus.alertmanager` → `grafana.grafana.grafana`，其余主机默认不执行。
+- Prometheus：
+  - `prometheus_storage_retention: "31d"` 显式控制保留期；`prometheus_alertmanager_config` 指向本机 9093；`prometheus_targets` 生成 node file_sd。
+  - `prometheus_scrape_configs` 扩展默认 job（Prometheus + Node）并追加 Alertmanager/Grafana job，`prometheus.yaml` 中的结构作为参考模板。
+- Alertmanager：`alertmanager_route` + `alertmanager_receivers` 组合最精简的 default route；`alertmanager_config_dir=/etc/alertmanager` 统一 Verify 路径。
+- Grafana：通过 `grafana_ini` 设置域名 `grafana.<domain_name>`，Pin 稳定版 `grafana_version: 12.3.0`，管理员固定 `kchou`，`grafana_admin_password` 仅从 `inventory/host_vars/<host>/secrets.yml` 读取；`grafana_datasources` 自动注册 `http://localhost:9090` DataSource 并写入 `/etc/grafana/provisioning/datasources/datasources.yml`。
+- 防火墙：生产主机仅开放 SSH（其余端口由 Cloudflared 暴露在 overlay 网络中）；Molecule 场景可按需放行本地 9093/3000 以通过验证。
+- Molecule：`host_vars/debian13` 复制同样的监控变量，`verify.yml` 新增 systemd/URI/datasource 检查与 Prometheus retention flag 断言，确保 CI 中能验证监控栈。
 
 ---
 
