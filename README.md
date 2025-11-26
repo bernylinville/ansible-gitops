@@ -1,17 +1,15 @@
 <!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
+
 <a id="readme-top"></a>
 
-
-
 <!-- PROJECT SHIELDS -->
+
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![project_license][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
-
-
 
 <!-- PROJECT LOGO -->
 <br />
@@ -35,8 +33,6 @@
     <a href="https://github.com/bernylinville/ansible-gitops/issues/new?labels=enhancement&template=feature-request---.md">提出改进</a>
   </p>
 </div>
-
-
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -64,9 +60,8 @@
   </ol>
 </details>
 
-
-
 <!-- ABOUT THE PROJECT -->
+
 ## About The Project
 
 Ansible GitOps 旨在以声明式、可审计的方式管理个人 VPS 与 Homelab 主机。仓库遵循"Configuration over Creation"原则：优先复用成熟的 Galaxy 角色 (`geerlingguy.*`, `prometheus.prometheus`, `grafana.grafana`)，仅保留两个自定义角色处理共享 Docker 网络与 Cloudflare Tunnel 胶水逻辑。
@@ -85,6 +80,7 @@ Ansible GitOps 旨在以声明式、可审计的方式管理个人 VPS 与 Homel
 ```
 
 ### 核心能力
+
 - **安全基线**：`geerlingguy.security` + `geerlingguy.firewall` 固化 SSH 加固与最小暴露端口策略。
 - **容器平台**：`geerlingguy.docker` 负责 Engine/Compose 安装，`docker_shared_network` 在安装后创建 `proxy_net` 供 Cloudflared 与业务容器共享。
 - **Zero-Trust 接入**：`cloudflared` role 渲染 `/opt/cloudflared/{config.yml,credentials.json}` 并将 Ingress 规则配置化。
@@ -93,20 +89,18 @@ Ansible GitOps 旨在以声明式、可审计的方式管理个人 VPS 与 Homel
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
 ### Built With
 
-* [![Ansible][Ansible.com]][Ansible-url]
-* [![Molecule][Molecule.dev]][Molecule-url]
-* [![Docker][Docker.com]][Docker-url]
-* [![Cloudflare][Cloudflare.com]][Cloudflare-url]
-* [![Prometheus][Prometheus.io]][Prometheus-url]
+- [![Ansible][Ansible.com]][Ansible-url]
+- [![Molecule][Molecule.dev]][Molecule-url]
+- [![Docker][Docker.com]][Docker-url]
+- [![Cloudflare][Cloudflare.com]][Cloudflare-url]
+- [![Prometheus][Prometheus.io]][Prometheus-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- GETTING STARTED -->
+
 ## Getting Started
 
 以下步骤帮助你在本地或 CI 环境快速复现相同的部署流程。
@@ -148,9 +142,8 @@ Ansible GitOps 旨在以声明式、可审计的方式管理个人 VPS 与 Homel
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- USAGE EXAMPLES -->
+
 ## Usage
 
 常用工作流如下：
@@ -179,16 +172,15 @@ cd molecule && molecule test
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- ROADMAP -->
+
 ## Roadmap
 
 - [x] 搭建 Ansible-first 仓库骨架与版本锁
 - [x] 集成 geerlingguy 安全 / 防火墙 / Docker 角色
 - [x] 交付共享 Docker 网络与 Cloudflared 自定义角色
 - [x] 为 `lab-sfo-txy-01` 启用 Prometheus + Alertmanager + Grafana
-- [ ] 将 GitHub Actions 工作流纳入 CI（galaxy install + ansible-lint + --check）
+- [x] 将 GitHub Actions 工作流纳入 CI（galaxy install + ansible-lint + --check）
 - [ ] 使用 Molecule + Testinfra 覆盖更多业务角色
 - [ ] 为更多主机/环境抽象 inventory（`inventory/dev`, `inventory/prod`）
 - [ ] 自动化发布应用栈（`app_stack_enabled`)
@@ -197,9 +189,8 @@ cd molecule && molecule test
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- CONTRIBUTING -->
+
 ## Contributing
 
 欢迎提交 Issue 或 PR！请遵循以下约定：
@@ -212,18 +203,16 @@ cd molecule && molecule test
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- LICENSE -->
+
 ## License
 
 当前尚未选择开源协议；在添加 `LICENSE` 文件前，默认保留全部权利。若计划在外部分发，请先联系维护者。
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- CONTACT -->
+
 ## Contact
 
 如需讨论新特性或遇到问题，请在 Issue 中发帖或通过 Discussions 与维护者沟通。
@@ -232,20 +221,18 @@ Project Link: [https://github.com/bernylinville/ansible-gitops](https://github.c
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- ACKNOWLEDGMENTS -->
+
 ## Acknowledgments
 
-* [Jeff Geerling 的 Ansible 角色集合](https://www.jeffgeerling.com/projects/ansible-roles)
-* [Cloudflare Tunnel 文档](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
-* [Prometheus Operator / Collection](https://galaxy.ansible.com/prometheus/prometheus)
+- [Jeff Geerling 的 Ansible 角色集合](https://www.jeffgeerling.com/projects/ansible-roles)
+- [Cloudflare Tunnel 文档](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
+- [Prometheus Operator / Collection](https://galaxy.ansible.com/prometheus/prometheus)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- MARKDOWN LINKS & IMAGES -->
+
 [contributors-shield]: https://img.shields.io/github/contributors/bernylinville/ansible-gitops.svg?style=for-the-badge
 [contributors-url]: https://github.com/bernylinville/ansible-gitops/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/bernylinville/ansible-gitops.svg?style=for-the-badge

@@ -3,19 +3,18 @@
   hosts: all
   become: true
   tasks:
-    - name: Check fail2ban service status
-      ansible.builtin.command: systemctl is-active fail2ban
-      register: fail2ban_status
-      changed_when: false
+    - name: Gather service facts
+      ansible.builtin.service_facts:
 
     - name: Assert fail2ban is active
       ansible.builtin.assert:
         that:
-          - fail2ban_status.stdout.strip() == "active"
+          - "'fail2ban.service' in ansible_facts.services"
+          - ansible_facts.services['fail2ban.service'].state == 'running'
         fail_msg: "fail2ban service is not active"
 
     - name: Check firewall service status
-      ansible.builtin.command: systemctl is-active firewall
+      ansible.builtin.command: systemctl is-active firewall # noqa: command-instead-of-module
       register: firewall_status
       changed_when: false
 
@@ -183,7 +182,7 @@
         fail_msg: "Prometheus/Alertmanager/Grafana services are not running"
 
     - name: Inspect Prometheus unit
-      ansible.builtin.command: systemctl cat prometheus
+      ansible.builtin.command: systemctl cat prometheus # noqa: command-instead-of-module
       register: prometheus_unit
       changed_when: false
 
@@ -249,7 +248,7 @@
 
     - name: Stat Alertmanager configuration
       ansible.builtin.stat:
-        path: "{{ alertmanager_config_dir }}/config.yml"
+        path: "{{ alertmanager_config_dir }}/alertmanager.yml"
       register: alertmanager_config
 
     - name: Assert Alertmanager configuration rendered
@@ -258,13 +257,11 @@
           - alertmanager_config.stat.exists
           - alertmanager_config.stat.size > 0
         fail_msg: "Alertmanager config missing"
-      ignore_errors: true
 
     - name: Validate Grafana datasource provisioning
       ansible.builtin.slurp:
         path: "{{ monitoring_grafana_datasources_path }}"
       register: grafana_datasource_file
-      ignore_errors: true
 
     - name: Assert Grafana datasource points to Prometheus
       ansible.builtin.assert:

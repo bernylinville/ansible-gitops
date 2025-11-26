@@ -69,7 +69,7 @@ grafana_version: "12.3.0"
 grafana_admin_user: "kchou"
 # grafana_admin_password is sourced from inventory/host_vars/lab-sfo-txy-01/secrets.yml
 alertmanager_config_dir: /etc/alertmanager
-monitoring_grafana_datasources_path: /etc/grafana/provisioning/datasources/datasources.yml
+monitoring_grafana_datasources_path: /etc/grafana/provisioning/datasources/ansible.yml
 grafana_ini:
   server:
     http_port: 3000

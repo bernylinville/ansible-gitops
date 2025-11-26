@@ -4,7 +4,9 @@ ansible_ssh_private_key_file: "{{ lookup('env', 'ANSIBLE_SSH_KEY_PATH') | defaul
 domain_name: devopsthink.org
 cloudflared_tunnel_domain_name: "{{ domain_name }}"
 node_exporter_version: "1.9.1"
-node_exporter_binary_url: "https://github.com/{{ _node_exporter_repo }}/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.{{ ansible_facts['system'] | lower }}-{{ _node_exporter_go_ansible_arch }}.tar.gz"
+node_exporter_binary_url: >-
+  https://github.com/{{ _node_exporter_repo }}/releases/download/v{{ node_exporter_version }}/
+  node_exporter-{{ node_exporter_version }}.{{ ansible_facts['system'] | lower }}-{{ _node_exporter_go_ansible_arch }}.tar.gz
 node_exporter_checksums_url: "https://github.com/{{ _node_exporter_repo }}/releases/download/v{{ node_exporter_version }}/sha256sums.txt"
 node_exporter_listen_host: "0.0.0.0"
 node_exporter_listen_port: 9100

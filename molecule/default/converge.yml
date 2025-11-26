@@ -40,4 +40,5 @@
         enabled: true
       when: ansible_facts.os_family == "Debian"
 
-- import_playbook: ../../playbooks/site.yml
+- name: Converge
+  import_playbook: ../../playbooks/site.yml

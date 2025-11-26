@@ -40,4 +40,5 @@ docker_shared_network_gateway: "10.203.57.1"
 docker_shared_network_ipam_config:
   - subnet: "{{ docker_shared_network_subnet }}"
     gateway: "{{ docker_shared_network_gateway }}"
+monitoring_grafana_datasources_path: /etc/grafana/provisioning/datasources/ansible.yml
 grafana_domain_name: "grafana-test.{{ domain_name }}"
