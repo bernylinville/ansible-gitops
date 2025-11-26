@@ -1,0 +1,4 @@
+ansible==13.0.0
+docker==7.1.0
+molecule==25.11.1
+molecule-plugins==25.8.12

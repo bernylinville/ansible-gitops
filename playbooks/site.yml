@@ -5,12 +5,6 @@
   gather_facts: false
 
   pre_tasks:
-    - name: Ensure Python 3 exists on remote
-      ansible.builtin.raw: >-
-        test -x /usr/bin/python3 || (apt-get update && apt-get install -y python3 python3-apt)
-      changed_when: false
-      tags: [bootstrap]
-
     - name: Gather facts after Python is present
       ansible.builtin.setup:
       tags: [facts]
@@ -20,7 +14,7 @@
         name:
           - python3-requests
           - python3-docker
-          - openssh-server
+          # - openssh-server
         state: present
         update_cache: true
       tags: [deps]

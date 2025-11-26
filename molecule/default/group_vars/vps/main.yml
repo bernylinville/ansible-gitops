@@ -13,7 +13,7 @@ docker_compose_package_state: present
 docker_users:
   - molecule
 docker_daemon_options:
-  storage-driver: overlay2
+  storage-driver: vfs
   log-opts:
     max-size: "100m"
 firewall_allowed_tcp_ports:

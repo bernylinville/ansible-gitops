@@ -1,2 +1,43 @@
 ---
+- name: Prepare Molecule container baseline
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Update apt cache (Debian)
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 600
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Install SSH prerequisites (Debian)
+      ansible.builtin.apt:
+        name:
+          - openssh-server
+          - openssh-client
+          - rsyslog
+        state: present
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Ensure auth log exists
+      ansible.builtin.copy:
+        dest: /var/log/auth.log
+        content: ""
+        force: false
+        mode: "0644"
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Ensure SSH service directories exist
+      ansible.builtin.file:
+        path: /var/run/sshd
+        state: directory
+        mode: "0755"
+
+    - name: Ensure SSH daemon is running
+      ansible.builtin.service:
+        name: ssh
+        state: started
+        enabled: true
+      when: ansible_facts.os_family == "Debian"
+
 - import_playbook: ../../playbooks/site.yml

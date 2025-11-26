@@ -1,9 +1,0 @@
----
-- name: Prepare
-  hosts: all
-  gather_facts: false
-  tasks:
-    - name: Install python3 and openssh-server
-      ansible.builtin.raw: >-
-        test -x /usr/bin/python3 || (apt-get update && apt-get install -y python3 python3-apt openssh-server sudo)
-      changed_when: false

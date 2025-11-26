@@ -1,22 +1,24 @@
 ---
 dependency:
   name: galaxy
-  options:
-    ignore-errors: true
-    role-file: ${MOLECULE_PROJECT_DIRECTORY}/requirements.yml
-    requirements-file: ${MOLECULE_PROJECT_DIRECTORY}/collections/requirements.yml
+  # options:
+  #   ignore-errors: true
+  #   role-file: ${MOLECULE_PROJECT_DIRECTORY}/requirements.yml
+  #   requirements-file: ${MOLECULE_PROJECT_DIRECTORY}/collections/requirements.yml
 driver:
-  name: vagrant
-  provider:
-    name: libvirt
+  name: docker
 scenario:
   name: default
 
 platforms:
   - name: debian13
-    box: jtarpley/debian13_base
-    memory: 1024
-    cpus: 2
+    image: "bernylinville/docker-debian13-ansible:latest"
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroupns_mode: host
+    privileged: true
+    pre_build_image: true
     groups:
       - vps
 provisioner:
@@ -27,7 +29,6 @@ provisioner:
       group_vars: group_vars
   playbooks:
     converge: ${MOLECULE_PLAYBOOK:-converge.yml}
-    prepare: prepare.yml
     verify: verify.yml
   env:
     PATH: "${MOLECULE_PROJECT_DIRECTORY}/.venv/bin:${PATH}"
