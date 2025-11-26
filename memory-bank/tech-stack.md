@@ -72,7 +72,7 @@
 为了防止未来因为依赖升级导致系统挂掉，必须在 `requirements.yml` 和 `docker images` 中锁定版本：
 
 - **Ansible Roles**: 必须指定 `version: x.y.z`。
-- **Docker Images**: 生产环境尽量避免使用 `latest` 标签，建议锁定具体 tag (如 `cloudflare/cloudflared:2024.11.0`)。
+- **Docker Images**: 生产环境尽量避免使用 `latest` 标签，建议锁定具体 tag (如 `cloudflare/cloudflared:2025.11.1`)。
 
 ## 6. 架构图示
 

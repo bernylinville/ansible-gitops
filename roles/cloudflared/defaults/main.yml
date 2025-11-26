@@ -1,0 +1,52 @@
+---
+# Cloudflared container defaults; override from inventory per environment.
+cloudflared_container_name: cloudflared
+cloudflared_image: cloudflare/cloudflared
+cloudflared_image_tag: "2025.11.1"
+cloudflared_restart_policy: unless-stopped
+cloudflared_state: started
+
+cloudflared_owner: root
+cloudflared_group: root
+cloudflared_data_directory: /opt/cloudflared
+cloudflared_data_directory_mode: "0750"
+cloudflared_config_filename: config.yml
+cloudflared_credentials_filename: credentials.json
+cloudflared_config_path: "{{ cloudflared_data_directory }}/{{ cloudflared_config_filename }}"
+cloudflared_credentials_path: "{{ cloudflared_data_directory }}/{{ cloudflared_credentials_filename }}"
+cloudflared_config_mode: "0640"
+cloudflared_credentials_mode: "0600"
+cloudflared_config_container_path: /etc/cloudflared/config.yml
+cloudflared_credentials_container_path: /etc/cloudflared/credentials.json
+cloudflared_container_user: "root"
+
+docker_shared_network_name: proxy_net
+cloudflared_extra_networks: []
+
+cloudflared_tunnel_id: ""
+cloudflared_tunnel_domain_name: ""
+cloudflared_tunnel_credentials_json: ""
+cloudflared_no_autoupdate: true
+cloudflared_env:
+  NO_AUTOUPDATE: "true"
+  TUNNEL_CRED_FILE: "{{ cloudflared_credentials_container_path }}"
+  TUNNEL_TRANSPORT_PROTOCOL: http2
+cloudflared_command_base:
+  - tunnel
+  - --config
+  - "{{ cloudflared_config_container_path }}"
+  - run
+
+cloudflared_ingress_rules:
+  - service: http_status:404
+
+# Whoami verification container defaults.
+# 默认 false，molecule 进行测试时启用
+cloudflared_whoami_enabled: false
+cloudflared_verify_whoami: false
+cloudflared_whoami_container_name: cloudflared-whoami
+cloudflared_whoami_image: traefik/whoami:v1.11.0
+cloudflared_whoami_service_host: "{{ cloudflared_whoami_container_name }}"
+cloudflared_whoami_service_port: 80
+cloudflared_whoami_env: {}
+cloudflared_whoami_restart_policy: unless-stopped

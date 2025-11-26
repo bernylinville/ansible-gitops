@@ -11,7 +11,7 @@ docker_install_compose_plugin: true
 docker_compose_package: docker-compose-plugin
 docker_compose_package_state: present
 docker_users:
-  - deploy
+  - kchou
 docker_daemon_options:
   storage-driver: overlay2
   log-opts:
@@ -35,3 +35,26 @@ security_autoupdate_reboot: "false"
 security_autoupdate_reboot_time: "03:00"
 security_autoupdate_mail_to: ""
 security_autoupdate_mail_on_error: true
+
+# Docker shared network defaults (all containers join this network)
+docker_shared_network_name: proxy_net
+docker_shared_network_subnet: "10.203.57.0/24"
+docker_shared_network_gateway: "10.203.57.1"
+docker_shared_network_ipam_config:
+  - subnet: "{{ docker_shared_network_subnet }}"
+    gateway: "{{ docker_shared_network_gateway }}"
+
+# Cloudflared defaults
+cloudflared_data_directory: /opt/cloudflared
+cloudflared_image_tag: "2025.11.1"
+cloudflared_tunnel_domain_name: "devopsthink.org" # TODO: 替换为 Cloudflare Access 域名
+cloudflared_verify_whoami: false
+cloudflared_whoami_enabled: true
+cloudflared_whoami_container_name: cloudflared-whoami
+cloudflared_whoami_service_host: "{{ cloudflared_whoami_container_name }}"
+cloudflared_whoami_service_port: 80
+cloudflared_ingress_rules:
+  - hostname: "whoami.{{ cloudflared_tunnel_domain_name }}"
+    service: "http://{{ cloudflared_whoami_service_host }}:{{ cloudflared_whoami_service_port }}"
+  - hostname: "devopsthink.org"
+    service: "http_status:404"

@@ -80,3 +80,17 @@ Next dev can proceed with M1 Step 2 once any additional validation is complete.
 - **Action**: Added `geerlingguy.docker` to `playbooks/site.yml`.
 - **Verification**: Updated `molecule/default/verify.yml` to include checks for Docker and Docker Compose versions.
 - **Next Steps**: Run `molecule test` to verify the full stack (Security + Firewall + Docker).
+
+## 2025-11-25 – M5 Step 1 (Cloudflared tunnel & whoami validation)
+
+- Added the custom `roles/cloudflared` role that templates `/opt/cloudflared/config.yml`, writes the vaulted `cloudflared_tunnel_credentials_json`, and runs both the `cloudflared` container and a `traefik/whoami` test container when `cloudflared_enabled: true`.
+- Extended `playbooks/site.yml` to include the role conditionally plus new inventory defaults (`cloudflared_*` variables, ingress definition, secrets example) so each host can opt in via `host_vars`.
+- Verification path: populate Vault with the real credentials JSON + tunnel ID, set `cloudflared_enabled: true` for the target host, run the playbook, then execute `docker ps`, `docker logs cloudflared`, and `curl https://whoami.<cloudflared_tunnel_domain_name>` to confirm the tunnel and ingress are healthy before moving to Step 6.
+- Cloudflared Tunnel ID 不再暴露在公开 group vars 中；Role 会从 Vault 内的 `cloudflared_tunnel_credentials_json` 自动解析，`secrets.example.yml` 仅保留该 JSON 占位，进一步减少敏感变量维护成本。
+
+## 2025-11-26 – Shared Docker network & Molecule Cloudflared tests
+
+- Extracted the shared `proxy_net` bridge creation into a dedicated `roles/docker_shared_network` role (invoked right after `geerlingguy.docker`) so every containerized workload—including Cloudflared—joins the same network provisioned during M4.
+- Updated `roles/cloudflared` to consume the shared network, rely solely on vaulted `cloudflared_tunnel_credentials_json`, and keep network concerns separated; inventory docs now describe the `docker_shared_network_*` knobs plus a `secrets.example.yml`.
+- Enhanced the Molecule scenario: `cloudflared_enabled` is now true for the Debian 13 instance with a sleep loop command, and `verify.yml` asserts proxy network existence, config/credential files, container attachment (Cloudflared + whoami), and optionally performs an HTTPS GET to `whoami.<domain>` when `cloudflared_verify_whoami`/`MOLECULE_CLOUDFLARE_VERIFY` are enabled—covering both structural and live tunnel checks.
+- Molecule links `group_vars/vps/secrets.yml` directly到生产库存文件，且 `molecule/default/molecule.yml` 通过 `ANSIBLE_CONFIG=${MOLECULE_PROJECT_DIRECTORY}/ansible.cfg` 强制加载仓库级配置（其中 `vault_password_file = .vault-password`），因此只需在仓库根放置该文件（或运行时覆盖 `--vault-password-file`）即可使用真实 Cloudflare 凭据运行测试且无需复制密文。

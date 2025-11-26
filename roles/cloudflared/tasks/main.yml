@@ -1,0 +1,92 @@
+---
+- name: Validate Cloudflared configuration context
+  ansible.builtin.assert:
+    that:
+      - (cloudflared_tunnel_credentials_json | default("")) | length > 0
+      - (cloudflared_ingress_rules | default([])) | length > 0
+    fail_msg: >-
+      Cloudflared requires credentials_json and at least one ingress rule.
+      Populate these variables in inventory/group_vars before enabling the role.
+
+- name: Parse Cloudflared credential JSON
+  ansible.builtin.set_fact:
+    cloudflared_credentials_struct: "{{ cloudflared_tunnel_credentials_json | trim | from_json }}"
+  no_log: true
+
+- name: Determine Cloudflared tunnel ID
+  ansible.builtin.set_fact:
+    cloudflared_effective_tunnel_id: >-
+      {{ (cloudflared_tunnel_id | default('') | trim)
+         if (cloudflared_tunnel_id is defined and (cloudflared_tunnel_id | trim | length) > 0)
+         else (cloudflared_credentials_struct.TunnelID | default('')) }}
+
+- name: Assert Cloudflared tunnel ID resolved
+  ansible.builtin.assert:
+    that:
+      - (cloudflared_effective_tunnel_id | default('')) | length > 0
+    fail_msg: Cloudflared tunnel ID could not be derived from credentials. Make sure the JSON includes TunnelID or set cloudflared_tunnel_id manually.
+
+- name: Build Cloudflared command
+  ansible.builtin.set_fact:
+    cloudflared_command_resolved: >-
+      {{ cloudflared_command
+         if cloudflared_command is defined
+         else (cloudflared_command_base | default(['tunnel','--config', cloudflared_config_container_path,'run'])) + [cloudflared_effective_tunnel_id] }}
+
+- name: Ensure Cloudflared data directory exists
+  ansible.builtin.file:
+    path: "{{ cloudflared_data_directory }}"
+    state: directory
+    owner: "{{ cloudflared_owner }}"
+    group: "{{ cloudflared_group }}"
+    mode: "{{ cloudflared_data_directory_mode }}"
+
+- name: Render Cloudflared configuration
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: "{{ cloudflared_config_path }}"
+    owner: "{{ cloudflared_owner }}"
+    group: "{{ cloudflared_group }}"
+    mode: "{{ cloudflared_config_mode }}"
+  register: cloudflared_config
+
+- name: Write Cloudflared credentials file
+  ansible.builtin.copy:
+    content: "{{ cloudflared_tunnel_credentials_json | trim }}"
+    dest: "{{ cloudflared_credentials_path }}"
+    owner: "{{ cloudflared_owner }}"
+    group: "{{ cloudflared_group }}"
+    mode: "{{ cloudflared_credentials_mode }}"
+  no_log: true
+  register: cloudflared_credentials
+
+- name: Build Cloudflared network attachment list
+  ansible.builtin.set_fact:
+    cloudflared_network_attachments: >-
+      {{ ([{'name': docker_shared_network_name}] if docker_shared_network_name is defined and docker_shared_network_name else []) + (cloudflared_extra_networks | default([])) }}
+
+- name: Manage whoami verification container
+  community.docker.docker_container:
+    name: "{{ cloudflared_whoami_container_name }}"
+    image: "{{ cloudflared_whoami_image }}"
+    restart_policy: "{{ cloudflared_whoami_restart_policy }}"
+    env: "{{ cloudflared_whoami_env }}"
+    networks: "{{ cloudflared_network_attachments }}"
+    state: "{{ 'started' if cloudflared_whoami_enabled else 'absent' }}"
+  tags: [cloudflared_whoami]
+
+- name: Run Cloudflared tunnel container
+  community.docker.docker_container:
+    name: "{{ cloudflared_container_name }}"
+    image: "{{ cloudflared_image }}:{{ cloudflared_image_tag }}"
+    restart_policy: "{{ cloudflared_restart_policy }}"
+    command: "{{ cloudflared_command_resolved }}"
+    user: "{{ cloudflared_container_user }}"
+    networks: "{{ cloudflared_network_attachments }}"
+    volumes:
+      - "{{ cloudflared_config_path }}:{{ cloudflared_config_container_path }}:ro"
+      - "{{ cloudflared_credentials_path }}:{{ cloudflared_credentials_container_path }}:ro"
+    env: "{{ cloudflared_env }}"
+    recreate: "{{ cloudflared_config.changed or cloudflared_credentials.changed }}"
+    state: "{{ cloudflared_state }}"
+  tags: [cloudflared]

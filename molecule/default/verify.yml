@@ -58,3 +58,81 @@
         that:
           - compose_version.rc == 0
         fail_msg: "Docker Compose is not installed"
+
+    - name: Inspect shared proxy network
+      community.docker.docker_network_info:
+        name: "{{ docker_shared_network_name }}"
+      register: proxy_network_info
+
+    - name: Assert proxy network exists
+      ansible.builtin.assert:
+        that:
+          - proxy_network_info.exists
+        fail_msg: "Shared Docker network {{ docker_shared_network_name }} is missing"
+
+    - name: Stat cloudflared config
+      ansible.builtin.stat:
+        path: "{{ hostvars[inventory_hostname]['cloudflared_config_path'] | default('/opt/cloudflared/config.yml') }}"
+      register: cloudflared_config_stat
+
+    - name: Stat cloudflared credentials
+      ansible.builtin.stat:
+        path: "{{ hostvars[inventory_hostname]['cloudflared_credentials_path'] | default('/opt/cloudflared/credentials.json') }}"
+      register: cloudflared_credentials_stat
+
+    - name: Assert cloudflared artifacts exist
+      ansible.builtin.assert:
+        that:
+          - cloudflared_config_stat.stat.exists
+          - cloudflared_credentials_stat.stat.exists
+        fail_msg: "Cloudflared config or credentials missing"
+
+    - name: Inspect cloudflared container
+      community.docker.docker_container_info:
+        name: "{{ cloudflared_container_name }}"
+      register: cloudflared_container_info
+
+    - name: Inspect whoami container
+      community.docker.docker_container_info:
+        name: "{{ cloudflared_whoami_container_name }}"
+      register: whoami_container_info
+      when: cloudflared_whoami_enabled | default(false)
+
+    - name: Assert cloudflared containers exist
+      ansible.builtin.assert:
+        that:
+          - cloudflared_container_info.exists
+          - (whoami_container_info.exists | default(true))
+          - docker_shared_network_name in (cloudflared_container_info.container.NetworkSettings.Networks.keys())
+        fail_msg: "Cloudflared/Whoami containers missing or detached from proxy network"
+
+    - name: Query Cloudflared whoami endpoint
+      ansible.builtin.uri:
+        url: "https://whoami.{{ cloudflared_tunnel_domain_name }}"
+        method: GET
+        status_code: 200
+        timeout: 20
+        validate_certs: true
+        return_content: true
+      register: cloudflared_whoami_response
+      changed_when: false
+      failed_when: false
+      retries: 6
+      delay: 10
+      until:
+        - cloudflared_whoami_response.status is defined
+        - cloudflared_whoami_response.status == 200
+      when:
+        - cloudflared_verify_whoami | default(false)
+        - cloudflared_whoami_enabled | default(false)
+
+    - name: Assert whoami endpoint responded successfully
+      ansible.builtin.assert:
+        that:
+          - cloudflared_whoami_response.status is defined
+          - cloudflared_whoami_response.status == 200
+          - (cloudflared_whoami_response.content | length) > 0
+        fail_msg: "Cloudflared whoami endpoint is unreachable via public tunnel"
+      when:
+        - cloudflared_verify_whoami | default(false)
+        - cloudflared_whoami_enabled | default(false)

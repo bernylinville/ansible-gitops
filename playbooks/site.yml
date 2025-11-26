@@ -23,3 +23,6 @@
     - geerlingguy.security
     - geerlingguy.firewall
     - geerlingguy.docker
+    - docker_shared_network
+    - role: cloudflared
+      when: cloudflared_enabled | default(false)

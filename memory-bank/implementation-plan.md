@@ -73,11 +73,22 @@ ansible_python_interpreter: /usr/bin/python3
 2. 组变量与 Vault
 
 - `inventory/group_vars/vps/main.yml`（非敏感）与 `inventory/group_vars/vps/secrets.yml`（Vault 加密）。
-- 在 `inventory/group_vars/vps/secrets.yml` 中放置共享的 Cloudflare Tunnel Token：
+- `inventory/group_vars/vps/main.yml` 还需定义共享 Docker 网络参数：
 
 ```yaml
-cloudflare_tunnel_token: !vault |
-  # vaulted content
+docker_shared_network_name: proxy_net
+docker_shared_network_subnet: 10.203.57.0/24
+docker_shared_network_gateway: 10.203.57.1
+docker_shared_network_ipam_config:
+  - subnet: "{{ docker_shared_network_subnet }}"
+    gateway: "{{ docker_shared_network_gateway }}"
+```
+
+- 在 `inventory/group_vars/vps/secrets.yml` 中放置共享的 Cloudflared Tunnel 凭据 JSON（`cloudflared tunnel create` 生成，内含 Tunnel ID）：
+
+```yaml
+cloudflared_tunnel_credentials_json: !vault |
+  # vaulted JSON blob
 ```
 
 - Cloudflared Token 只放在 Vault；CI 不再通过 `--extra-vars` 注入敏感值。
@@ -168,25 +179,29 @@ roles:
   - geerlingguy.security
   - geerlingguy.firewall
   - geerlingguy.docker
+  - docker_shared_network
 ```
 
 - 验证：使用 Molecule (Vagrant Driver) 进行本地测试，避免 Docker-in-Docker 问题。
 - 生产验证：SSH 到服务器执行 `docker --version`、`docker compose version`；非 root 用户 `docker ps` 可用。
+- 网络：同阶段确认 `docker network inspect proxy_net` 成功（共享 `docker_shared_network_name` 供所有容器加入）。
 
 ---
 
 ## M5：Cloudflare Tunnel（容器化）
 
-1. 自定义轻量 Role `roles/cloudflared` 或直接在 Playbook tasks 中编写（依赖 `community.docker` Collection）：
+1. 自定义轻量 Role `roles/cloudflared`（依赖 `community.docker` Collection，前置共享网络已由 `docker_shared_network` Role 创建）：
 
 ```yaml
-- name: Ensure proxy_net network exists
-  community.docker.docker_network:
-    name: proxy_net
-    state: present
-    ipam_config:
-      - subnet: 10.203.57.0/24 # 避免网络冲突
-        gateway: 10.203.57.1
+- name: Render /opt/cloudflared/config.yml
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: /opt/cloudflared/config.yml
+
+- name: Copy credentials.json (Vaulted)
+  ansible.builtin.copy:
+    content: "{{ cloudflared_tunnel_credentials_json }}"
+    dest: /opt/cloudflared/credentials.json
 
 - name: Run cloudflared tunnel container (per-host opt-in)
   community.docker.docker_container:
@@ -194,16 +209,22 @@ roles:
     image: cloudflare/cloudflared:2025.11.1 # 示例 tag，实际使用前可按当时稳定版调整并同步文档
     restart_policy: unless-stopped
     networks:
-      - name: proxy_net
-    env:
-      TUNNEL_TOKEN: "{{ cloudflare_tunnel_token }}"
-    command: tunnel run
+      - name: "{{ docker_shared_network_name }}"
+    command:
+      - "tunnel"
+      - "--config"
+      - "/etc/cloudflared/config.yml"
+      - "run"
+      - "{{ cloudflared_tunnel_id }}"
+    volumes:
+      - "/opt/cloudflared/config.yml:/etc/cloudflared/config.yml"
+      - "/opt/cloudflared/credentials.json:/etc/cloudflared/credentials.json"
   when: cloudflared_enabled | default(false)
 ```
 
-- `cloudflare_tunnel_token` 变量直接由 Vault 解密提供，无需 CLI `--extra-vars`。
-
-- 验证：`docker ps` 容器 Up；`docker logs cloudflared` 含 "Registered tunnel connection"；Cloudflare 控制台显示 Healthy。
+- `cloudflared_tunnel_credentials_json` 由 Vault 解密提供，无需 CLI `--extra-vars`，Role 会从 JSON 自动解析 `TunnelID`，只有在需要覆盖默认值时才显式设置 `cloudflared_tunnel_id`。
+- 验证：`docker ps` 容器 Up；`docker logs cloudflared` 含 "Registered tunnel connection"；Cloudflare 控制台显示 Healthy；部署 `whoami` 容器并通过 `curl https://whoami.<domain>`/Ansible `uri` 模块（受 `cloudflared_verify_whoami` 控制）验证 Ingress。Molecule 场景可通过设定 `MOLECULE_CLOUDFLARE_VERIFY=true` 重用生产 Vault secrets 触发相同测试。
+- 验证容器：默认同时运行 `traefik/whoami` 并加入共享网络，域名 `whoami.<cloudflared_tunnel_domain_name>` 用于快速 `curl` 健康检查，验证完毕后可通过变量关闭。
 
 ---
 

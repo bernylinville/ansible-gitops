@@ -31,6 +31,7 @@ provisioner:
     converge: ${MOLECULE_PLAYBOOK:-converge.yml}
     verify: verify.yml
   env:
+    ANSIBLE_CONFIG: "${MOLECULE_PROJECT_DIRECTORY}/ansible.cfg"
     PATH: "${MOLECULE_PROJECT_DIRECTORY}/.venv/bin:${PATH}"
 verifier:
   name: ansible

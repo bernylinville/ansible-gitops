@@ -13,3 +13,6 @@ roles/geerlingguy.firewall/
 
 .agent/
 .vscode/
+.spec-workflow/
+
+cloudflare-tunnel.json

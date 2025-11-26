@@ -33,3 +33,22 @@ security_autoupdate_reboot: "false"
 security_autoupdate_reboot_time: "03:00"
 security_autoupdate_mail_to: ""
 security_autoupdate_mail_on_error: true
+docker_shared_network_name: proxy_net
+docker_shared_network_subnet: "10.203.57.0/24"
+docker_shared_network_gateway: "10.203.57.1"
+docker_shared_network_ipam_config:
+  - subnet: "{{ docker_shared_network_subnet }}"
+    gateway: "{{ docker_shared_network_gateway }}"
+cloudflared_data_directory: /opt/cloudflared
+cloudflared_image_tag: "2025.11.1"
+cloudflared_tunnel_domain_name: "{{ domain_name }}"
+cloudflared_whoami_enabled: true
+cloudflared_verify_whoami: "{{ lookup('env', 'MOLECULE_CLOUDFLARE_VERIFY') | default('true', true) | bool }}"
+cloudflared_container_name: cloudflared
+cloudflared_whoami_container_name: cloudflared-whoami
+cloudflared_whoami_service_host: "{{ cloudflared_whoami_container_name }}"
+cloudflared_whoami_service_port: 80
+cloudflared_ingress_rules:
+  - hostname: "whoami.{{ cloudflared_tunnel_domain_name }}"
+    service: "http://{{ cloudflared_whoami_service_host }}:{{ cloudflared_whoami_service_port }}"
+  - service: http_status:404
