@@ -77,5 +77,6 @@ jobs:
         env:
           ANSIBLE_HOST_KEY_CHECKING: 'False'
           ANSIBLE_FORCE_COLOR: 'True'
+          ANSIBLE_BECOME_PASSWORD: ${{ secrets.ANSIBLE_SUDO_PASSWORD }}
         run: |
           ansible-playbook -i inventory/hosts.yml playbooks/site.yml
