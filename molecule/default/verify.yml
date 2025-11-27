@@ -279,3 +279,22 @@
         that:
           - alertmanager_config_file.content | b64decode | regex_search('telegram_configs')
         fail_msg: "Alertmanager configuration missing Telegram integration"
+
+    - name: Wait for MoleculeTestAlert to fire
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:9090/api/v1/alerts"
+        method: GET
+        status_code: 200
+      register: prometheus_alerts
+      until:
+        - prometheus_alerts.json.data.alerts | selectattr('labels.alertname', 'equalto', 'MoleculeTestAlert') | list | length > 0
+        - (prometheus_alerts.json.data.alerts | selectattr('labels.alertname', 'equalto', 'MoleculeTestAlert') | first).state == 'firing'
+      retries: 12
+      delay: 5
+      failed_when: false # Don't fail if alert doesn't fire immediately, but assert below
+
+    - name: Assert MoleculeTestAlert is firing
+      ansible.builtin.assert:
+        that:
+          - prometheus_alerts.json.data.alerts | selectattr('labels.alertname', 'equalto', 'MoleculeTestAlert') | list | length > 0
+        fail_msg: "MoleculeTestAlert did not fire"

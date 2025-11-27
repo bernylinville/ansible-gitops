@@ -1,0 +1,10 @@
+---
+prometheus_alert_rules:
+  - alert: MoleculeTestAlert
+    expr: vector(1)
+    for: 10s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Molecule Test Alert"
+      description: "This is a test alert to verify Telegram integration."
