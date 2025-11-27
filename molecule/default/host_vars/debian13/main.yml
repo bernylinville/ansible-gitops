@@ -76,7 +76,7 @@ grafana_ini:
   server:
     http_port: 3000
     domain: "{{ grafana_domain_name }}"
-    root_url: "https://{{ grafana_domain_name }}"
+    root_url: "https://{{ grafana_domain_name }}/"
     serve_from_sub_path: false
   security:
     admin_user: "{{ grafana_admin_user }}"
