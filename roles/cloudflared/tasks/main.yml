@@ -88,6 +88,7 @@
       - "{{ cloudflared_config_path }}:{{ cloudflared_config_container_path }}:ro"
       - "{{ cloudflared_credentials_path }}:{{ cloudflared_credentials_container_path }}:ro"
     env: "{{ cloudflared_env }}"
+    etc_hosts: "{{ cloudflared_etc_hosts }}"
     recreate: "{{ cloudflared_config.changed or cloudflared_credentials.changed }}"
     state: "{{ cloudflared_state }}"
   tags: [cloudflared]
