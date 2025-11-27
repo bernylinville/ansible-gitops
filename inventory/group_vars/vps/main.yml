@@ -23,6 +23,7 @@ firewall_allowed_tcp_ports:
   - "{{ node_exporter_listen_port }}"
 firewall_state: started
 firewall_enabled_at_boot: true
+firewall_flush_rules_and_chains: false
 security_ssh_password_authentication: "no"
 security_ssh_permit_root_login: "no"
 security_autoupdate_enabled: true
