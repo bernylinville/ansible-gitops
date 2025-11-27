@@ -268,3 +268,14 @@
         that:
           - grafana_datasource_file.content | b64decode | regex_search('http://localhost:9090')
         fail_msg: "Grafana datasource missing Prometheus URL"
+
+    - name: Validate Alertmanager Telegram configuration
+      ansible.builtin.slurp:
+        path: "{{ alertmanager_config_dir }}/alertmanager.yml"
+      register: alertmanager_config_file
+
+    - name: Assert Alertmanager has Telegram config
+      ansible.builtin.assert:
+        that:
+          - alertmanager_config_file.content | b64decode | regex_search('telegram_configs')
+        fail_msg: "Alertmanager configuration missing Telegram integration"

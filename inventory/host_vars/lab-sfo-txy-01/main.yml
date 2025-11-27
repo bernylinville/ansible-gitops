@@ -57,14 +57,18 @@ prometheus_scrape_configs:
 alertmanager_version: 0.29.0
 # Alertmanager baseline routing
 alertmanager_route:
-  receiver: "default-route"
+  receiver: "telegram"
   group_by:
     - alertname
   group_wait: 30s
   group_interval: 5m
   repeat_interval: 4h
 alertmanager_receivers:
-  - name: "default-route"
+  - name: "telegram"
+    telegram_configs:
+      - bot_token: "{{ telegram_bot_token }}"
+        chat_id: "{{ telegram_chat_id }}"
+        parse_mode: "Markdown"
 
 # Grafana provisioning
 grafana_version: "12.3.0"
