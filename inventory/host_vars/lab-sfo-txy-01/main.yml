@@ -6,21 +6,9 @@ cloudflared_enabled: true
 firewall_forward_policy: ACCEPT
 # Allow Grafana access from private networks (including Docker containers)
 firewall_additional_rules:
-  - direction: in
-    proto: tcp
-    to_port: "3000"
-    from_ip: "10.0.0.0/8"
-    rule: allow
-  - direction: in
-    proto: tcp
-    to_port: "3000"
-    from_ip: "172.16.0.0/12"
-    rule: allow
-  - direction: in
-    proto: tcp
-    to_port: "3000"
-    from_ip: "192.168.0.0/16"
-    rule: allow
+  - "iptables -A INPUT -p tcp -s 10.0.0.0/8 --dport 3000 -j ACCEPT"
+  - "iptables -A INPUT -p tcp -s 172.16.0.0/12 --dport 3000 -j ACCEPT"
+  - "iptables -A INPUT -p tcp -s 192.168.0.0/16 --dport 3000 -j ACCEPT"
 # Cloudflared host-specific configuration
 cloudflared_data_directory: /opt/cloudflared
 cloudflared_image_tag: "2025.11.1"
