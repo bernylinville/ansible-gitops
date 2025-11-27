@@ -9,7 +9,8 @@ firewall_additional_rules:
   - "iptables -A INPUT -p tcp -s 10.0.0.0/8 --dport 3000 -j ACCEPT"
   - "iptables -A INPUT -p tcp -s 172.16.0.0/12 --dport 3000 -j ACCEPT"
   - "iptables -A INPUT -p tcp -s 192.168.0.0/16 --dport 3000 -j ACCEPT"
-prometheus_node_exporter_bind_address: "{{ ansible_default_ipv4.address }}"
+# Force Prometheus/node_exporter targets to advertise the private LAN IP only.
+prometheus_node_exporter_address: "10.4.0.12"
 # Cloudflared host-specific configuration
 cloudflared_data_directory: /opt/cloudflared
 cloudflared_image_tag: "2025.11.1"
