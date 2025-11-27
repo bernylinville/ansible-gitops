@@ -30,7 +30,7 @@ cloudflared_no_autoupdate: true
 cloudflared_env:
   NO_AUTOUPDATE: "true"
   TUNNEL_CRED_FILE: "{{ cloudflared_credentials_container_path }}"
-  TUNNEL_TRANSPORT_PROTOCOL: http2
+  TUNNEL_TRANSPORT_PROTOCOL: auto
 cloudflared_command_base:
   - tunnel
   - --config
