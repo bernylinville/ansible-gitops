@@ -6,3 +6,5 @@ roles:
     version: 3.0.0
   - name: geerlingguy.firewall
     version: 2.7.0
+  - name: geerlingguy.ntp
+    version: 3.0.0

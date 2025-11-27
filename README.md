@@ -169,6 +169,7 @@ cd molecule && molecule test
 - 可通过 `--tags facts,deps,cloudflared` 等方式选择性执行任务。
 - `inventory/host_vars/<hostname>/main.yml` 控制各主机的功能开关（如 `prometheus_enabled`）。
 - 所有敏感变量必须存放在对应的 `secrets.yml` 中并使用 Vault 加密。
+- GitHub Actions 中的 **Molecule CI** workflow 会在特性分支 push 与指向 `main` 的 Pull Request 上自动运行 `molecule test`，确保自定义角色与监控栈在容器内持续回归。
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

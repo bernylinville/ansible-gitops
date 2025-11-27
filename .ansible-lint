@@ -1,5 +1,3 @@
 # .ansible-lint
 exclude_paths:
-  - roles/geerlingguy.docker/
-  - roles/geerlingguy.firewall/
-  - roles/geerlingguy.security/
+  - roles/geerlingguy.*

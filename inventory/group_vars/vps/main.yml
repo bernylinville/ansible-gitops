@@ -40,6 +40,16 @@ security_autoupdate_reboot_time: "03:00"
 security_autoupdate_mail_to: ""
 security_autoupdate_mail_on_error: true
 
+# Time synchronization across all VPS hosts
+ntp_manage_config: true
+ntp_timezone: "America/Los_Angeles"
+ntp_area: "us"
+ntp_servers:
+  - "time.cloudflare.com iburst"
+  - "time.google.com iburst"
+  - "0.us.pool.ntp.org iburst"
+  - "1.us.pool.ntp.org iburst"
+
 # Docker shared network defaults (all containers join this network)
 docker_shared_network_name: proxy_net
 docker_shared_network_subnet: "10.203.57.0/24"
