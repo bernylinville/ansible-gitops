@@ -9,6 +9,7 @@ firewall_additional_rules:
   - "iptables -A INPUT -p tcp -s 10.0.0.0/8 --dport 3000 -j ACCEPT"
   - "iptables -A INPUT -p tcp -s 172.16.0.0/12 --dport 3000 -j ACCEPT"
   - "iptables -A INPUT -p tcp -s 192.168.0.0/16 --dport 3000 -j ACCEPT"
+prometheus_node_exporter_bind_address: "{{ ansible_default_ipv4.address }}"
 # Cloudflared host-specific configuration
 cloudflared_data_directory: /opt/cloudflared
 cloudflared_image_tag: "2025.11.1"
@@ -38,7 +39,7 @@ prometheus_alertmanager_config:
           - "{{ ansible_fqdn | default(ansible_host) | default(inventory_hostname) }}:9093"
 prometheus_targets:
   node:
-    - targets: "{{ groups['vps'] | default([]) | map('extract', hostvars, 'prometheus_node_exporter_target') | list }}"
+    - targets: "{{ groups['vps'] | default([]) | map('extract', hostvars, 'prometheus_node_exporter_target') | select | list }}"
       labels:
         env: lab
 prometheus_scrape_configs:

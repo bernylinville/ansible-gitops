@@ -23,11 +23,15 @@ node_exporter_system_group: "node-exp"
 node_exporter_system_user: "{{ node_exporter_system_group }}"
 node_exporter_config_dir: "/etc/node_exporter"
 prometheus_node_exporter_address: >-
-  {{ ansible_host
+  {{ hostvars[inventory_hostname].prometheus_node_exporter_bind_address
      | default(
-         (ansible_default_ipv4['address']
-          if (ansible_default_ipv4 is defined and 'address' in ansible_default_ipv4)
-          else ''),
+         ansible_host
+         | default(
+             (ansible_default_ipv4['address']
+              if (ansible_default_ipv4 is defined and 'address' in ansible_default_ipv4)
+              else ''),
+             true
+           ),
          true
        )
      | default(inventory_hostname, true)
