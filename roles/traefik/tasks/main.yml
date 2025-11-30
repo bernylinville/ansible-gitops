@@ -1,0 +1,64 @@
+---
+- name: 创建 Traefik 数据目录
+  when: traefik_enable | bool
+  become: true
+  ansible.builtin.file:
+      path: "{{ item }}"
+      state: directory
+      owner: "{{ traefik_data_owner }}"
+      group: "{{ traefik_data_group }}"
+      mode: "{{ traefik_data_dir_mode }}"
+  loop:
+      - "{{ traefik_data_directory }}"
+      - "{{ traefik_letsencrypt_directory }}"
+
+- name: 确保 ACME 存储存在
+  when: traefik_enable | bool
+  become: true
+  ansible.builtin.file:
+      path: "{{ traefik_acme_storage_host_path }}"
+      state: touch
+      owner: "{{ traefik_data_owner }}"
+      group: "{{ traefik_data_group }}"
+      mode: "{{ traefik_acme_file_mode }}"
+
+- name: 部署 Traefik 容器
+  when: traefik_enable | bool
+  community.docker.docker_container:
+      name: "{{ traefik_container_name }}"
+      image: "{{ traefik_image }}:{{ traefik_image_tag }}"
+      pull: "{{ 'always' if traefik_pull | bool else 'missing' }}"
+      state: "{{ traefik_state }}"
+      restart_policy: "{{ traefik_restart_policy }}"
+      command: "{{ traefik_command_flags }}"
+      env: "{{ traefik_env_defaults | combine(traefik_env_overrides, recursive=True) }}"
+      published_ports: "{{ traefik_published_ports }}"
+      networks_cli_compatible: "{{ traefik_networks_cli_compatible }}"
+      networks: "{{ traefik_networks }}"
+      volumes: "{{ traefik_volumes }}"
+      labels: "{{ traefik_labels_defaults | combine(traefik_labels_overrides, recursive=True) }}"
+      log_driver: "{{ traefik_log_driver }}"
+      log_options: "{{ traefik_log_options }}"
+      healthcheck: "{{ traefik_healthcheck }}"
+
+- name: 部署 Whoami 测试容器
+  when: traefik_enable | bool and traefik_whoami_enabled | bool
+  community.docker.docker_container:
+      name: "{{ traefik_whoami_container_name }}"
+      image: "{{ traefik_whoami_image }}:{{ traefik_whoami_image_tag }}"
+      state: "{{ traefik_state }}"
+      restart_policy: "{{ traefik_restart_policy }}"
+      networks_cli_compatible: "{{ traefik_networks_cli_compatible }}"
+      networks:
+          - name: "{{ traefik_network_name }}"
+      labels: "{{ traefik_whoami_labels_defaults | combine(traefik_whoami_labels_overrides, recursive=True) }}"
+
+- name: 删除已禁用的 Traefik 组件
+  when: not traefik_enable | bool
+  community.docker.docker_container:
+      name: "{{ item }}"
+      state: absent
+      force_kill: true
+  loop:
+      - "{{ traefik_container_name }}"
+      - "{{ traefik_whoami_container_name }}"
