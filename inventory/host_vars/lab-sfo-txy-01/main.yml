@@ -1,7 +1,6 @@
 ---
-# lab-sfo-txy-01 专属变量；连接端口引用 secrets.yml 里的 security_ssh_port。
-ansible_port: "{{ security_ssh_port }}"
 cloudflared_enabled: true
+gemi2api_enable: true
 # Fix Docker networking issues with UFW
 firewall_forward_policy: ACCEPT
 # Allow Grafana access from private networks (including Docker containers)

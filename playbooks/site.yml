@@ -1,7 +1,7 @@
 ---
 - name: Bootstrap Debian hosts before role convergence
   hosts: vps
-  become: true
+  # become: true
   gather_facts: false
 
   pre_tasks:
@@ -17,20 +17,31 @@
           # - openssh-server
         state: present
         update_cache: true
+      become: true
       tags: [deps]
 
+    - name: Change hostname
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}"
+      become: true
+
   roles:
-    - geerlingguy.ntp
-    - geerlingguy.security
-    - geerlingguy.firewall
-    - geerlingguy.docker
-    - docker_shared_network
-    - prometheus.prometheus.node_exporter
-    - role: prometheus.prometheus.prometheus
-      when: prometheus_enabled | default(false)
-    - role: prometheus.prometheus.alertmanager
-      when: alertmanager_enabled | default(false)
-    - role: grafana.grafana.grafana
-      when: grafana_enabled | default(false)
-    - role: cloudflared
-      when: cloudflared_enabled | default(false)
+    - role: geerlingguy.ntp
+      become: true
+    - role: geerlingguy.security
+      become: true
+    # - geerlingguy.firewall
+    - role: geerlingguy.docker
+      become: true
+    - role: docker_shared_network
+    - role: gemi2api
+    - role: prometheus.prometheus.node_exporter
+      become: true
+    # - role: prometheus.prometheus.prometheus
+    #   when: prometheus_enabled | default(false)
+    # - role: prometheus.prometheus.alertmanager
+    #   when: alertmanager_enabled | default(false)
+    # - role: grafana.grafana.grafana
+    #   when: grafana_enabled | default(false)
+    # - role: cloudflared
+    #   when: cloudflared_enabled | default(false)

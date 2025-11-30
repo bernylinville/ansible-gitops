@@ -1,0 +1,23 @@
+---
+- name: 部署 gemi2api 容器
+  when: gemi2api_enable | bool
+  community.docker.docker_container:
+    name: "{{ gemi2api_container_name }}"
+    image: "{{ gemi2api_image }}:{{ gemi2api_image_tag }}"
+    pull: "{{ 'always' if gemi2api_pull | bool else 'missing' }}"
+    restart_policy: "{{ gemi2api_restart_policy }}"
+    state: "{{ gemi2api_state }}"
+    env: "{{ gemi2api_env_defaults | combine(gemi2api_env_overrides, recursive=True) }}"
+    published_ports:
+      - "{{ gemi2api_bind_address }}:{{ gemi2api_bind_port }}:{{ gemi2api_container_port }}"
+    networks:
+      - name: "{{ gemi2api_network_name }}"
+    networks_cli_compatible: true
+    labels: "{{ gemi2api_labels }}"
+
+- name: 删除已禁用的 gemi2api 容器
+  when: not gemi2api_enable | bool
+  community.docker.docker_container:
+    name: "{{ gemi2api_container_name }}"
+    state: absent
+    force_kill: true

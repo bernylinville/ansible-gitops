@@ -13,28 +13,28 @@
           - ansible_facts.services['fail2ban.service'].state == 'running'
         fail_msg: "fail2ban service is not active"
 
-    - name: Check firewall service status
-      ansible.builtin.command: systemctl is-active firewall # noqa: command-instead-of-module
-      register: firewall_status
-      changed_when: false
+    # - name: Check firewall service status
+    #   ansible.builtin.command: systemctl is-active firewall # noqa: command-instead-of-module
+    #   register: firewall_status
+    #   changed_when: false
 
-    - name: Assert firewall is active
-      ansible.builtin.assert:
-        that:
-          - firewall_status.stdout.strip() == "active"
-        fail_msg: "firewall service is not active"
+    # - name: Assert firewall is active
+    #   ansible.builtin.assert:
+    #     that:
+    #       - firewall_status.stdout.strip() == "active"
+    #     fail_msg: "firewall service is not active"
 
-    - name: Check iptables rules
-      ansible.builtin.command: iptables -L INPUT -n
-      register: iptables_status
-      changed_when: false
-      become: true
+    # - name: Check iptables rules
+    #   ansible.builtin.command: iptables -L INPUT -n
+    #   register: iptables_status
+    #   changed_when: false
+    #   become: true
 
-    - name: Assert SSH port is allowed in iptables
-      ansible.builtin.assert:
-        that:
-          - iptables_status.stdout is search('dpt:22')
-        fail_msg: "SSH port 22 is not allowed in iptables"
+    # - name: Assert SSH port is allowed in iptables
+    #   ansible.builtin.assert:
+    #     that:
+    #       - iptables_status.stdout is search('dpt:22')
+    #     fail_msg: "SSH port 22 is not allowed in iptables"
 
     - name: Check Docker version
       ansible.builtin.command: docker --version
@@ -100,201 +100,201 @@
           - proxy_network_info.exists
         fail_msg: "Shared Docker network {{ docker_shared_network_name }} is missing"
 
-    - name: Stat cloudflared config
-      ansible.builtin.stat:
-        path: "{{ hostvars[inventory_hostname]['cloudflared_config_path'] | default('/opt/cloudflared/config.yml') }}"
-      register: cloudflared_config_stat
+    # - name: Stat cloudflared config
+    #   ansible.builtin.stat:
+    #     path: "{{ hostvars[inventory_hostname]['cloudflared_config_path'] | default('/opt/cloudflared/config.yml') }}"
+    #   register: cloudflared_config_stat
 
-    - name: Stat cloudflared credentials
-      ansible.builtin.stat:
-        path: "{{ hostvars[inventory_hostname]['cloudflared_credentials_path'] | default('/opt/cloudflared/credentials.json') }}"
-      register: cloudflared_credentials_stat
+    # - name: Stat cloudflared credentials
+    #   ansible.builtin.stat:
+    #     path: "{{ hostvars[inventory_hostname]['cloudflared_credentials_path'] | default('/opt/cloudflared/credentials.json') }}"
+    #   register: cloudflared_credentials_stat
 
-    - name: Assert cloudflared artifacts exist
-      ansible.builtin.assert:
-        that:
-          - cloudflared_config_stat.stat.exists
-          - cloudflared_credentials_stat.stat.exists
-        fail_msg: "Cloudflared config or credentials missing"
+    # - name: Assert cloudflared artifacts exist
+    #   ansible.builtin.assert:
+    #     that:
+    #       - cloudflared_config_stat.stat.exists
+    #       - cloudflared_credentials_stat.stat.exists
+    #     fail_msg: "Cloudflared config or credentials missing"
 
-    - name: Inspect cloudflared container
-      community.docker.docker_container_info:
-        name: "{{ cloudflared_container_name }}"
-      register: cloudflared_container_info
+    # - name: Inspect cloudflared container
+    #   community.docker.docker_container_info:
+    #     name: "{{ cloudflared_container_name }}"
+    #   register: cloudflared_container_info
 
-    - name: Inspect whoami container
-      community.docker.docker_container_info:
-        name: "{{ cloudflared_whoami_container_name }}"
-      register: whoami_container_info
-      when: cloudflared_whoami_enabled | default(false)
+    # - name: Inspect whoami container
+    #   community.docker.docker_container_info:
+    #     name: "{{ cloudflared_whoami_container_name }}"
+    #   register: whoami_container_info
+    #   when: cloudflared_whoami_enabled | default(false)
 
-    - name: Assert cloudflared containers exist
-      ansible.builtin.assert:
-        that:
-          - cloudflared_container_info.exists
-          - (whoami_container_info.exists | default(true))
-          - docker_shared_network_name in (cloudflared_container_info.container.NetworkSettings.Networks.keys())
-        fail_msg: "Cloudflared/Whoami containers missing or detached from proxy network"
+    # - name: Assert cloudflared containers exist
+    #   ansible.builtin.assert:
+    #     that:
+    #       - cloudflared_container_info.exists
+    #       - (whoami_container_info.exists | default(true))
+    #       - docker_shared_network_name in (cloudflared_container_info.container.NetworkSettings.Networks.keys())
+    #     fail_msg: "Cloudflared/Whoami containers missing or detached from proxy network"
 
-    - name: Query Cloudflared whoami endpoint
-      ansible.builtin.uri:
-        url: "https://whoami.{{ cloudflared_tunnel_domain_name }}"
-        method: GET
-        status_code: 200
-        timeout: 20
-        validate_certs: true
-        return_content: true
-      register: cloudflared_whoami_response
-      changed_when: false
-      failed_when: false
-      retries: 6
-      delay: 10
-      until:
-        - cloudflared_whoami_response.status is defined
-        - cloudflared_whoami_response.status == 200
-      when:
-        - cloudflared_verify_whoami | default(false)
-        - cloudflared_whoami_enabled | default(false)
+    # - name: Query Cloudflared whoami endpoint
+    #   ansible.builtin.uri:
+    #     url: "https://whoami.{{ cloudflared_tunnel_domain_name }}"
+    #     method: GET
+    #     status_code: 200
+    #     timeout: 20
+    #     validate_certs: true
+    #     return_content: true
+    #   register: cloudflared_whoami_response
+    #   changed_when: false
+    #   failed_when: false
+    #   retries: 6
+    #   delay: 10
+    #   until:
+    #     - cloudflared_whoami_response.status is defined
+    #     - cloudflared_whoami_response.status == 200
+    #   when:
+    #     - cloudflared_verify_whoami | default(false)
+    #     - cloudflared_whoami_enabled | default(false)
 
-    - name: Assert whoami endpoint responded successfully
-      ansible.builtin.assert:
-        that:
-          - cloudflared_whoami_response.status is defined
-          - cloudflared_whoami_response.status == 200
-          - (cloudflared_whoami_response.content | length) > 0
-        fail_msg: "Cloudflared whoami endpoint is unreachable via public tunnel"
-      when:
-        - cloudflared_verify_whoami | default(false)
-        - cloudflared_whoami_enabled | default(false)
+    # - name: Assert whoami endpoint responded successfully
+    #   ansible.builtin.assert:
+    #     that:
+    #       - cloudflared_whoami_response.status is defined
+    #       - cloudflared_whoami_response.status == 200
+    #       - (cloudflared_whoami_response.content | length) > 0
+    #     fail_msg: "Cloudflared whoami endpoint is unreachable via public tunnel"
+    #   when:
+    #     - cloudflared_verify_whoami | default(false)
+    #     - cloudflared_whoami_enabled | default(false)
 
-    - name: Gather monitoring service facts
-      ansible.builtin.service_facts:
+    # - name: Gather monitoring service facts
+    #   ansible.builtin.service_facts:
 
-    - name: Assert monitoring services are active
-      ansible.builtin.assert:
-        that:
-          - "'prometheus.service' in ansible_facts.services"
-          - ansible_facts.services['prometheus.service'].state == 'running'
-          - "'alertmanager.service' in ansible_facts.services"
-          - ansible_facts.services['alertmanager.service'].state == 'running'
-          - "'grafana-server.service' in ansible_facts.services"
-          - ansible_facts.services['grafana-server.service'].state == 'running'
-        fail_msg: "Prometheus/Alertmanager/Grafana services are not running"
+    # - name: Assert monitoring services are active
+    #   ansible.builtin.assert:
+    #     that:
+    #       - "'prometheus.service' in ansible_facts.services"
+    #       - ansible_facts.services['prometheus.service'].state == 'running'
+    #       - "'alertmanager.service' in ansible_facts.services"
+    #       - ansible_facts.services['alertmanager.service'].state == 'running'
+    #       - "'grafana-server.service' in ansible_facts.services"
+    #       - ansible_facts.services['grafana-server.service'].state == 'running'
+    #     fail_msg: "Prometheus/Alertmanager/Grafana services are not running"
 
-    - name: Inspect Prometheus unit
-      ansible.builtin.command: systemctl cat prometheus # noqa: command-instead-of-module
-      register: prometheus_unit
-      changed_when: false
+    # - name: Inspect Prometheus unit
+    #   ansible.builtin.command: systemctl cat prometheus # noqa: command-instead-of-module
+    #   register: prometheus_unit
+    #   changed_when: false
 
-    - name: Assert Prometheus retention flag
-      ansible.builtin.assert:
-        that:
-          - "'--storage.tsdb.retention.time={{ prometheus_storage_retention }}' in prometheus_unit.stdout"
-        fail_msg: "Prometheus retention CLI flag missing or incorrect"
+    # - name: Assert Prometheus retention flag
+    #   ansible.builtin.assert:
+    #     that:
+    #       - "'--storage.tsdb.retention.time={{ prometheus_storage_retention }}' in prometheus_unit.stdout"
+    #     fail_msg: "Prometheus retention CLI flag missing or incorrect"
 
-    - name: Check Prometheus node SD file
-      ansible.builtin.stat:
-        path: "{{ prometheus_config_dir }}/file_sd/node.yml"
-      register: prometheus_file_sd
+    # - name: Check Prometheus node SD file
+    #   ansible.builtin.stat:
+    #     path: "{{ prometheus_config_dir }}/file_sd/node.yml"
+    #   register: prometheus_file_sd
 
-    - name: Assert node service discovery file exists
-      ansible.builtin.assert:
-        that:
-          - prometheus_file_sd.stat.exists
-          - prometheus_file_sd.stat.size > 0
-        fail_msg: "Prometheus node service-discovery file missing"
+    # - name: Assert node service discovery file exists
+    #   ansible.builtin.assert:
+    #     that:
+    #       - prometheus_file_sd.stat.exists
+    #       - prometheus_file_sd.stat.size > 0
+    #     fail_msg: "Prometheus node service-discovery file missing"
 
-    - name: Query Prometheus readiness endpoint
-      ansible.builtin.uri:
-        url: "http://127.0.0.1:9090/-/ready"
-        method: GET
-        status_code: 200
-        timeout: 15
-      register: prometheus_ready
-      changed_when: false
-      retries: 6
-      delay: 5
-      until:
-        - prometheus_ready.status is defined
-        - prometheus_ready.status == 200
+    # - name: Query Prometheus readiness endpoint
+    #   ansible.builtin.uri:
+    #     url: "http://127.0.0.1:9090/-/ready"
+    #     method: GET
+    #     status_code: 200
+    #     timeout: 15
+    #   register: prometheus_ready
+    #   changed_when: false
+    #   retries: 6
+    #   delay: 5
+    #   until:
+    #     - prometheus_ready.status is defined
+    #     - prometheus_ready.status == 200
 
-    - name: Query Alertmanager readiness endpoint
-      ansible.builtin.uri:
-        url: "http://127.0.0.1:9093/-/ready"
-        method: GET
-        status_code: 200
-        timeout: 15
-      register: alertmanager_ready
-      changed_when: false
-      retries: 6
-      delay: 5
-      until:
-        - alertmanager_ready.status is defined
-        - alertmanager_ready.status == 200
+    # - name: Query Alertmanager readiness endpoint
+    #   ansible.builtin.uri:
+    #     url: "http://127.0.0.1:9093/-/ready"
+    #     method: GET
+    #     status_code: 200
+    #     timeout: 15
+    #   register: alertmanager_ready
+    #   changed_when: false
+    #   retries: 6
+    #   delay: 5
+    #   until:
+    #     - alertmanager_ready.status is defined
+    #     - alertmanager_ready.status == 200
 
-    - name: Query Grafana login page
-      ansible.builtin.uri:
-        url: "http://127.0.0.1:3000/login"
-        method: GET
-        status_code: [200, 302]
-        timeout: 15
-      register: grafana_login
-      changed_when: false
-      retries: 6
-      delay: 5
-      until:
-        - grafana_login.status is defined
-        - grafana_login.status in [200, 302]
+    # - name: Query Grafana login page
+    #   ansible.builtin.uri:
+    #     url: "http://127.0.0.1:3000/login"
+    #     method: GET
+    #     status_code: [200, 302]
+    #     timeout: 15
+    #   register: grafana_login
+    #   changed_when: false
+    #   retries: 6
+    #   delay: 5
+    #   until:
+    #     - grafana_login.status is defined
+    #     - grafana_login.status in [200, 302]
 
-    - name: Stat Alertmanager configuration
-      ansible.builtin.stat:
-        path: "{{ alertmanager_config_dir }}/alertmanager.yml"
-      register: alertmanager_config
+    # - name: Stat Alertmanager configuration
+    #   ansible.builtin.stat:
+    #     path: "{{ alertmanager_config_dir }}/alertmanager.yml"
+    #   register: alertmanager_config
 
-    - name: Assert Alertmanager configuration rendered
-      ansible.builtin.assert:
-        that:
-          - alertmanager_config.stat.exists
-          - alertmanager_config.stat.size > 0
-        fail_msg: "Alertmanager config missing"
+    # - name: Assert Alertmanager configuration rendered
+    #   ansible.builtin.assert:
+    #     that:
+    #       - alertmanager_config.stat.exists
+    #       - alertmanager_config.stat.size > 0
+    #     fail_msg: "Alertmanager config missing"
 
-    - name: Validate Grafana datasource provisioning
-      ansible.builtin.slurp:
-        path: "{{ monitoring_grafana_datasources_path }}"
-      register: grafana_datasource_file
+    # - name: Validate Grafana datasource provisioning
+    #   ansible.builtin.slurp:
+    #     path: "{{ monitoring_grafana_datasources_path }}"
+    #   register: grafana_datasource_file
 
-    - name: Assert Grafana datasource points to Prometheus
-      ansible.builtin.assert:
-        that:
-          - grafana_datasource_file.content | b64decode | regex_search('http://localhost:9090')
-        fail_msg: "Grafana datasource missing Prometheus URL"
+    # - name: Assert Grafana datasource points to Prometheus
+    #   ansible.builtin.assert:
+    #     that:
+    #       - grafana_datasource_file.content | b64decode | regex_search('http://localhost:9090')
+    #     fail_msg: "Grafana datasource missing Prometheus URL"
 
-    - name: Validate Alertmanager Telegram configuration
-      ansible.builtin.slurp:
-        path: "{{ alertmanager_config_dir }}/alertmanager.yml"
-      register: alertmanager_config_file
+    # - name: Validate Alertmanager Telegram configuration
+    #   ansible.builtin.slurp:
+    #     path: "{{ alertmanager_config_dir }}/alertmanager.yml"
+    #   register: alertmanager_config_file
 
-    - name: Assert Alertmanager has Telegram config
-      ansible.builtin.assert:
-        that:
-          - alertmanager_config_file.content | b64decode | regex_search('telegram_configs')
-        fail_msg: "Alertmanager configuration missing Telegram integration"
+    # - name: Assert Alertmanager has Telegram config
+    #   ansible.builtin.assert:
+    #     that:
+    #       - alertmanager_config_file.content | b64decode | regex_search('telegram_configs')
+    #     fail_msg: "Alertmanager configuration missing Telegram integration"
 
-    - name: Wait for MoleculeTestAlert to fire
-      ansible.builtin.uri:
-        url: "http://127.0.0.1:9090/api/v1/alerts"
-        method: GET
-        status_code: 200
-      register: prometheus_alerts
-      until:
-        - prometheus_alerts.json.data.alerts | selectattr('labels.alertname', 'equalto', 'MoleculeTestAlert') | list | length > 0
-        - (prometheus_alerts.json.data.alerts | selectattr('labels.alertname', 'equalto', 'MoleculeTestAlert') | first).state == 'firing'
-      retries: 12
-      delay: 5
-      failed_when: false # Don't fail if alert doesn't fire immediately, but assert below
+    # - name: Wait for MoleculeTestAlert to fire
+    #   ansible.builtin.uri:
+    #     url: "http://127.0.0.1:9090/api/v1/alerts"
+    #     method: GET
+    #     status_code: 200
+    #   register: prometheus_alerts
+    #   until:
+    #     - prometheus_alerts.json.data.alerts | selectattr('labels.alertname', 'equalto', 'MoleculeTestAlert') | list | length > 0
+    #     - (prometheus_alerts.json.data.alerts | selectattr('labels.alertname', 'equalto', 'MoleculeTestAlert') | first).state == 'firing'
+    #   retries: 12
+    #   delay: 5
+    #   failed_when: false # Don't fail if alert doesn't fire immediately, but assert below
 
-    - name: Assert MoleculeTestAlert is firing
-      ansible.builtin.assert:
-        that:
-          - prometheus_alerts.json.data.alerts | selectattr('labels.alertname', 'equalto', 'MoleculeTestAlert') | list | length > 0
-        fail_msg: "MoleculeTestAlert did not fire"
+    # - name: Assert MoleculeTestAlert is firing
+    #   ansible.builtin.assert:
+    #     that:
+    #       - prometheus_alerts.json.data.alerts | selectattr('labels.alertname', 'equalto', 'MoleculeTestAlert') | list | length > 0
+    #     fail_msg: "MoleculeTestAlert did not fire"

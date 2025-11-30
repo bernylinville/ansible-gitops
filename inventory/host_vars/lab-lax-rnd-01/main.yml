@@ -1,0 +1,102 @@
+---
+# cloudflared_enabled: true
+# Fix Docker networking issues with UFW
+# firewall_forward_policy: ACCEPT
+# Allow Grafana access from private networks (including Docker containers)
+# firewall_additional_rules:
+#   - "iptables -A INPUT -p tcp -s 10.0.0.0/8 --dport 3000 -j ACCEPT"
+#   - "iptables -A INPUT -p tcp -s 172.16.0.0/12 --dport 3000 -j ACCEPT"
+#   - "iptables -A INPUT -p tcp -s 192.168.0.0/16 --dport 3000 -j ACCEPT"
+# Force Prometheus/node_exporter targets to advertise the private LAN IP only.
+# prometheus_node_exporter_address: "10.4.0.12"
+# Cloudflared host-specific configuration
+# cloudflared_data_directory: /opt/cloudflared
+# cloudflared_image_tag: "2025.11.1"
+# cloudflared_tunnel_domain_name: "{{ domain_name }}"
+# cloudflared_container_name: cloudflared
+# cloudflared_whoami_enabled: false
+# cloudflared_verify_whoami: false
+# # Cloudflared routes Grafana through the Docker host alias; adjust when more services are onboarded.
+# cloudflared_ingress_rules:
+#   - hostname: "{{ grafana_domain_name }}"
+#     service: "http://host.docker.internal:3000"
+#   - service: "http_status:404"
+# cloudflared_etc_hosts:
+#   host.docker.internal: "{{ docker_shared_network_gateway }}"
+# app_stack_enabled: false
+# prometheus_enabled: true
+# alertmanager_enabled: true
+# grafana_enabled: true
+
+# prometheus_version: 3.7.3
+# Prometheus configuration (retain ~1 month of metrics)
+# prometheus_storage_retention: "31d"
+# prometheus_config_dir: /etc/prometheus
+# prometheus_alertmanager_config:
+#   - static_configs:
+#       - targets:
+#           - "{{ ansible_fqdn | default(ansible_host) | default(inventory_hostname) }}:9093"
+# prometheus_targets:
+#   node:
+#     - targets: "{{ groups['vps'] | default([]) | map('extract', hostvars, 'prometheus_node_exporter_target') | select | list }}"
+#       labels:
+#         env: lab
+# prometheus_scrape_configs:
+#   - job_name: "prometheus"
+#     metrics_path: "{{ prometheus_metrics_path }}"
+#     static_configs:
+#       - targets:
+#           - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:9090"
+#   - job_name: "node"
+#     file_sd_configs:
+#       - files:
+#           - "{{ prometheus_config_dir }}/file_sd/node.yml"
+#   - job_name: "alertmanager"
+#     static_configs:
+#       - targets:
+#           - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:9093"
+#   - job_name: "grafana"
+#     metrics_path: "/metrics"
+#     static_configs:
+#       - targets:
+#           - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:3000"
+
+# alertmanager_version: 0.29.0
+# # Alertmanager baseline routing
+# alertmanager_route:
+#   receiver: "telegram"
+#   group_by:
+#     - alertname
+#   group_wait: 30s
+#   group_interval: 5m
+#   repeat_interval: 4h
+# alertmanager_receivers:
+#   - name: "telegram"
+#     telegram_configs:
+#       - bot_token: "{{ telegram_bot_token }}"
+#         chat_id: "{{ telegram_chat_id }}"
+#         parse_mode: "Markdown"
+
+# # Grafana provisioning
+# grafana_version: "12.3.0"
+# grafana_admin_user: "kchou"
+# # grafana_admin_password is sourced from inventory/host_vars/lab-sfo-txy-01/secrets.yml
+# alertmanager_config_dir: /etc/alertmanager
+# monitoring_grafana_datasources_path: /etc/grafana/provisioning/datasources/ansible.yml
+# grafana_ini:
+#   server:
+#     http_port: 3000
+#     domain: "{{ grafana_domain_name }}"
+#     root_url: "https://{{ grafana_domain_name }}/"
+#     serve_from_sub_path: false
+#   security:
+#     admin_user: "{{ grafana_admin_user }}"
+#     admin_password: "{{ grafana_admin_password }}"
+# grafana_datasources:
+#   - name: "Prometheus"
+#     type: prometheus
+#     access: proxy
+#     url: "http://localhost:9090"
+#     isDefault: true
+#     jsonData:
+#       timeInterval: "30s"
