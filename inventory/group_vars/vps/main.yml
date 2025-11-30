@@ -2,33 +2,34 @@
 # 非敏感的 VPS 组变量，聚合所有角色所需的共享默认值。
 docker_edition: "ce"
 docker_packages:
-  - "docker-{{ docker_edition }}"
-  - "docker-{{ docker_edition }}-cli"
-  - containerd.io
-  - docker-buildx-plugin
+    - "docker-{{ docker_edition }}"
+    - "docker-{{ docker_edition }}-cli"
+    - containerd.io
+    - docker-buildx-plugin
 docker_packages_state: present
 docker_install_compose_plugin: true
 docker_compose_package: docker-compose-plugin
 docker_compose_package_state: present
 docker_users:
-  - kchou
+    - kchou
 docker_daemon_options:
-  storage-driver: overlay2
-  iptables: true
-  ip-masq: true
-  log-opts:
-    max-size: "100m"
+    storage-driver: overlay2
+    iptables: true
+    ip-masq: true
+    log-opts:
+        max-size: "100m"
 firewall_allowed_tcp_ports:
-  - "{{ security_ssh_port | default(22) }}"
-  - "{{ node_exporter_listen_port }}"
+    - "{{ security_ssh_port | default(22) }}"
+    - "{{ node_exporter_listen_port }}"
 firewall_state: started
 firewall_enabled_at_boot: true
 firewall_flush_rules_and_chains: false
+security_ssh_port: "24653"
 security_ssh_password_authentication: "no"
 security_ssh_permit_root_login: "no"
 security_autoupdate_enabled: true
 security_ssh_allowed_users:
-  - "{{ ansible_user }}"
+    - "{{ ansible_user }}"
 # Fail2ban is enabled everywhere; override custom template if needed per-host.
 security_fail2ban_enabled: true
 security_fail2ban_custom_configuration_template: "jail.local.j2"
@@ -45,18 +46,18 @@ ntp_manage_config: true
 ntp_timezone: "America/Los_Angeles"
 ntp_area: "us"
 ntp_servers:
-  - "time.cloudflare.com iburst"
-  - "time.google.com iburst"
-  - "0.us.pool.ntp.org iburst"
-  - "1.us.pool.ntp.org iburst"
+    - "time.cloudflare.com iburst"
+    - "time.google.com iburst"
+    - "0.us.pool.ntp.org iburst"
+    - "1.us.pool.ntp.org iburst"
 
 # Docker shared network defaults (all containers join this network)
 docker_shared_network_name: proxy_net
 docker_shared_network_subnet: "10.203.57.0/24"
 docker_shared_network_gateway: "10.203.57.1"
 docker_shared_network_ipam_config:
-  - subnet: "{{ docker_shared_network_subnet }}"
-    gateway: "{{ docker_shared_network_gateway }}"
+    - subnet: "{{ docker_shared_network_subnet }}"
+      gateway: "{{ docker_shared_network_gateway }}"
 
 # Monitoring defaults
 grafana_domain_name: "grafana.{{ domain_name }}"
