@@ -70,7 +70,6 @@ traefik_command_flags_defaults:
     - "--providers.docker.endpoint=unix://{{ traefik_docker_socket_path }}"
     - "--providers.docker.exposedbydefault=false"
     - "--providers.docker.network={{ traefik_network_name }}"
-    - "--core.defaultRuleSyntax=v2"
     - "--entrypoints.web.address=:{{ traefik_container_http_port }}"
     - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
     - "--entrypoints.websecure.address=:{{ traefik_container_https_port }}"
@@ -87,14 +86,11 @@ traefik_command_flags: "{{ traefik_command_flags_defaults + traefik_additional_c
 traefik_labels_defaults:
     traefik.enable: "true"
     traefik.docker.network: "{{ traefik_network_name }}"
-    traefik.http.middlewares.gzip.compress: "true"
-    traefik.http.routers.traefik-dashboard-secure.middlewares: "gzip"
-    traefik.http.routers.traefik-dashboard-secure.rule: "Host(`{{ traefik_dashboard_domain }}`)"
+    traefik.http.routers.traefik-dashboard-secure.rule: 'Host("{{ traefik_dashboard_domain }}")'
     traefik.http.routers.traefik-dashboard-secure.entrypoints: "websecure"
     traefik.http.routers.traefik-dashboard-secure.tls.certresolver: "{{ traefik_acme_resolver_name }}"
     traefik.http.routers.traefik-dashboard-secure.service: "dashboard@internal"
-    traefik.http.routers.traefik-dashboard-api-secure.middlewares: "gzip"
-    traefik.http.routers.traefik-dashboard-api-secure.rule: "Host(`{{ traefik_dashboard_domain }}`) && PathPrefix(`/api`)"
+    traefik.http.routers.traefik-dashboard-api-secure.rule: 'Host("{{ traefik_dashboard_domain }}") && PathPrefix("/api")'
     traefik.http.routers.traefik-dashboard-api-secure.entrypoints: "websecure"
     traefik.http.routers.traefik-dashboard-api-secure.tls.certresolver: "{{ traefik_acme_resolver_name }}"
     traefik.http.routers.traefik-dashboard-api-secure.service: "api@internal"
@@ -105,9 +101,8 @@ traefik_whoami_image_tag: v1.11.0
 traefik_whoami_container_name: traefik-whoami
 traefik_whoami_labels_defaults:
     traefik.enable: "true"
-    traefik.http.routers.whoami.rule: "Host(`{{ traefik_whoami_domain }}`)"
+    traefik.http.routers.whoami.rule: 'Host("{{ traefik_whoami_domain }}")'
     traefik.http.routers.whoami.entrypoints: "websecure"
-    traefik.http.routers.whoami.middlewares: "gzip"
     traefik.http.routers.whoami.tls.certresolver: "{{ traefik_acme_resolver_name }}"
     traefik.http.services.whoami.loadbalancer.server.port: "80"
 traefik_whoami_labels_overrides: {}

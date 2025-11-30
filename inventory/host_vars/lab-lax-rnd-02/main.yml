@@ -10,5 +10,5 @@ traefik_whoami_domain: "whoami.{{ domain_name }}"
 traefik_acme_email: "{{ ansible_user }}@{{ domain_name }}"
 traefik_whoami_enabled: true
 traefik_env_overrides:
-  CF_API_EMAIL: "{{ traefik_cloudflare_api_email | default('', true) }}"
-  CF_API_KEY: "{{ traefik_cloudflare_api_key | default('', true) }}"
+    # Cloudflare DNS challenge now uses scoped API Tokens.
+    CF_DNS_API_TOKEN: "{{ traefik_cloudflare_api_key | default('', true) }}"
