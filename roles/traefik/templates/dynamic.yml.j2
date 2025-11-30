@@ -1,0 +1,7 @@
+# Managed by Ansible – Traefik dynamic configuration
+{% set cfg = traefik_file_provider_config | default({}, true) %}
+{% if cfg %}
+{{ cfg | to_nice_yaml(indent=2) }}
+{% else %}
+{}
+{% endif %}

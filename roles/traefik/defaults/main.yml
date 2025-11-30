@@ -33,11 +33,28 @@ traefik_env_defaults:
     TZ: "{{ traefik_timezone }}"
 traefik_env_overrides: {}
 traefik_docker_socket_path: /var/run/docker.sock
+traefik_compression_enabled: false
+traefik_compression_middleware_name: http-compression
+traefik_default_middlewares: "{{ [traefik_compression_middleware_name] if traefik_compression_enabled | bool else [] }}"
+traefik_default_middlewares_joined: "{{ traefik_default_middlewares | select | list | join(',') }}"
+traefik_whoami_middlewares: "{{ traefik_default_middlewares }}"
+traefik_whoami_middlewares_joined: "{{ traefik_whoami_middlewares | select | list | join(',') }}"
+traefik_file_provider_enabled: false
+traefik_file_provider_directory: "{{ traefik_data_directory }}/dynamic"
+traefik_file_provider_filename: dynamic.yml
+traefik_file_provider_filepath: "{{ traefik_file_provider_directory }}/{{ traefik_file_provider_filename }}"
+traefik_file_provider_mount_path: /dynamic
+traefik_file_provider_config: {}
+traefik_file_provider_command_flags:
+    - "--providers.file.directory={{ traefik_file_provider_mount_path }}"
+    - "--providers.file.watch=true"
 traefik_volumes_required:
     - "{{ traefik_letsencrypt_directory }}:/letsencrypt:rw"
     - "{{ traefik_docker_socket_path }}:{{ traefik_docker_socket_path }}:ro"
+traefik_file_provider_volume_mapping: "{{ traefik_file_provider_directory }}:{{ traefik_file_provider_mount_path }}:ro"
+traefik_file_provider_volumes: "{{ [traefik_file_provider_volume_mapping] if traefik_file_provider_enabled | bool else [] }}"
 traefik_additional_volumes: []
-traefik_volumes: "{{ traefik_volumes_required + traefik_additional_volumes }}"
+traefik_volumes: "{{ traefik_volumes_required + traefik_file_provider_volumes + traefik_additional_volumes }}"
 traefik_log_driver: json-file
 traefik_log_options:
     max-size: "1m"
@@ -82,8 +99,10 @@ traefik_command_flags_defaults:
     - "--certificatesresolvers.{{ traefik_acme_resolver_name }}.acme.storage={{ traefik_acme_storage_container_path }}"
     - "--metrics.prometheus={{ 'true' if traefik_metrics_enabled | bool else 'false' }}"
 traefik_additional_command_flags: []
-traefik_command_flags: "{{ traefik_command_flags_defaults + traefik_additional_command_flags }}"
-traefik_labels_defaults:
+traefik_command_flags: "{{ traefik_command_flags_defaults
+    + (traefik_file_provider_command_flags if traefik_file_provider_enabled | bool else [])
+    + traefik_additional_command_flags }}"
+traefik_labels_defaults_base:
     traefik.enable: "true"
     traefik.docker.network: "{{ traefik_network_name }}"
     traefik.http.routers.traefik-dashboard-secure.rule: 'Host("{{ traefik_dashboard_domain }}")'
@@ -94,15 +113,23 @@ traefik_labels_defaults:
     traefik.http.routers.traefik-dashboard-api-secure.entrypoints: "websecure"
     traefik.http.routers.traefik-dashboard-api-secure.tls.certresolver: "{{ traefik_acme_resolver_name }}"
     traefik.http.routers.traefik-dashboard-api-secure.service: "api@internal"
+traefik_compression_labels_defaults: "{{ {('traefik.http.middlewares.' + traefik_compression_middleware_name + '.compression'): 'true'} if traefik_compression_enabled | bool else {} }}"
+traefik_router_middlewares_labels_defaults: "{{ {} if not traefik_default_middlewares_joined else {'traefik.http.routers.traefik-dashboard-secure.middlewares': traefik_default_middlewares_joined, 'traefik.http.routers.traefik-dashboard-api-secure.middlewares': traefik_default_middlewares_joined} }}"
+traefik_labels_defaults: "{{ traefik_labels_defaults_base
+    | combine(traefik_compression_labels_defaults, recursive=True)
+    | combine(traefik_router_middlewares_labels_defaults, recursive=True) }}"
 traefik_labels_overrides: {}
 traefik_whoami_enabled: false
 traefik_whoami_image: traefik/whoami
 traefik_whoami_image_tag: v1.11.0
 traefik_whoami_container_name: traefik-whoami
-traefik_whoami_labels_defaults:
+traefik_whoami_labels_defaults_base:
     traefik.enable: "true"
     traefik.http.routers.whoami.rule: 'Host("{{ traefik_whoami_domain }}")'
     traefik.http.routers.whoami.entrypoints: "websecure"
     traefik.http.routers.whoami.tls.certresolver: "{{ traefik_acme_resolver_name }}"
     traefik.http.services.whoami.loadbalancer.server.port: "80"
+traefik_whoami_middlewares_labels_defaults: "{{ {} if not traefik_whoami_middlewares_joined else {'traefik.http.routers.whoami.middlewares': traefik_whoami_middlewares_joined} }}"
+traefik_whoami_labels_defaults: "{{ traefik_whoami_labels_defaults_base
+    | combine(traefik_whoami_middlewares_labels_defaults, recursive=True) }}"
 traefik_whoami_labels_overrides: {}

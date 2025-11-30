@@ -8,9 +8,7 @@
       owner: "{{ traefik_data_owner }}"
       group: "{{ traefik_data_group }}"
       mode: "{{ traefik_data_dir_mode }}"
-  loop:
-      - "{{ traefik_data_directory }}"
-      - "{{ traefik_letsencrypt_directory }}"
+  loop: "{{ [traefik_data_directory, traefik_letsencrypt_directory] + ([traefik_file_provider_directory] if traefik_file_provider_enabled | bool else []) }}"
 
 - name: 确保 ACME 存储存在
   when: traefik_enable | bool
@@ -21,6 +19,16 @@
       owner: "{{ traefik_data_owner }}"
       group: "{{ traefik_data_group }}"
       mode: "{{ traefik_acme_file_mode }}"
+
+- name: 渲染 Traefik File Provider 配置
+  when: traefik_enable | bool and traefik_file_provider_enabled | bool
+  become: true
+  ansible.builtin.template:
+      src: dynamic.yml.j2
+      dest: "{{ traefik_file_provider_filepath }}"
+      owner: "{{ traefik_data_owner }}"
+      group: "{{ traefik_data_group }}"
+      mode: "0644"
 
 - name: 部署 Traefik 容器
   when: traefik_enable | bool

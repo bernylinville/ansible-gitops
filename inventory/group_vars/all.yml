@@ -5,6 +5,9 @@ ansible_ssh_common_args: >-
   -o ConnectionAttempts=6
   -o ConnectTimeout=20
 domain_name: devopsthink.org
+
+nas_tailscale_ip: 100.80.43.37
+
 cloudflared_tunnel_domain_name: "{{ domain_name }}"
 node_exporter_version: "1.9.1"
 node_exporter_listen_host: "0.0.0.0"
