@@ -1,6 +1,7 @@
 ---
 cloudflared_enabled: true
 gemi2api_enable: true
+gemi2api_image_tag: v1.17.1
 # Fix Docker networking issues with UFW
 firewall_forward_policy: ACCEPT
 # Allow Grafana access from private networks (including Docker containers)
