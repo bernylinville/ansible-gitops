@@ -34,11 +34,11 @@ security_autoupdate_reboot: "false"
 security_autoupdate_reboot_time: "03:00"
 security_autoupdate_mail_to: ""
 security_autoupdate_mail_on_error: true
-docker_shared_network_name: proxy_net
-docker_shared_network_subnet: "10.203.57.0/24"
-docker_shared_network_gateway: "10.203.57.1"
-docker_shared_network_ipam_config:
-  - subnet: "{{ docker_shared_network_subnet }}"
-    gateway: "{{ docker_shared_network_gateway }}"
+docker_custom_network_name: proxy_net
+docker_custom_network_subnet: "10.203.57.0/24"
+docker_custom_network_gateway: "10.203.57.1"
+docker_custom_network_ipam_config:
+  - subnet: "{{ docker_custom_network_subnet }}"
+    gateway: "{{ docker_custom_network_gateway }}"
 monitoring_grafana_datasources_path: /etc/grafana/provisioning/datasources/ansible.yml
 grafana_domain_name: "grafana-test.{{ domain_name }}"

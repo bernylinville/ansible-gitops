@@ -16,7 +16,7 @@
 **关键特性**：
 - 从加密的 Vault 变量中自动解析 Tunnel ID
 - 支持动态 Ingress 规则配置
-- 与 `docker_shared_network` 角色集成（自动加入 `proxy_net`）
+- 与 `docker_custom` 角色集成（自动加入 `proxy_net`）
 - Molecule 测试友好（可选启用 whoami 验证容器）
 
 ---
@@ -96,7 +96,7 @@ cloudflared_ingress_rules:
 
 ### 角色依赖
 
-- **`docker_shared_network`**: 必须在此角色之前执行，确保 `proxy_net` 网络存在
+- **`docker_custom`**: 必须在此角色之前执行，确保 `proxy_net` 网络存在
 - **`geerlingguy.docker`**: 提供 Docker Engine 和 Python SDK
 
 ### 集合依赖
@@ -161,7 +161,7 @@ cloudflared_effective_tunnel_id: "{{ cloudflared_credentials_struct.TunnelID }}"
 ```yaml
 # 动态构建网络列表
 cloudflared_network_attachments: >-
-  {{ ([{'name': docker_shared_network_name}] if docker_shared_network_name is defined else []) +
+  {{ ([{'name': docker_custom_name}] if docker_custom_name is defined else []) +
      (cloudflared_extra_networks | default([])) }}
 ```
 
@@ -199,7 +199,7 @@ cloudflared_ingress_rules:
 #   ansible.builtin.assert:
 #     that:
 #       - cloudflared_container_info.exists
-#       - docker_shared_network_name in (cloudflared_container_info.container.NetworkSettings.Networks.keys())
+#       - docker_custom_name in (cloudflared_container_info.container.NetworkSettings.Networks.keys())
 ```
 
 ### 质量检查
@@ -231,11 +231,11 @@ cat ~/.cloudflared/<tunnel-id>.json
 
 ### Q2: 为什么容器使用 `host.docker.internal`？
 
-**A**: Cloudflared 需要访问宿主机上的服务（如 Grafana 3000 端口）。通过 `cloudflared_etc_hosts` 将 `host.docker.internal` 映射到 `docker_shared_network_gateway`（10.203.57.1），实现容器到主机的反向访问。
+**A**: Cloudflared 需要访问宿主机上的服务（如 Grafana 3000 端口）。通过 `cloudflared_etc_hosts` 将 `host.docker.internal` 映射到 `docker_custom_gateway`（10.203.57.1），实现容器到主机的反向访问。
 
 ```yaml
 cloudflared_etc_hosts:
-  host.docker.internal: "{{ docker_shared_network_gateway }}"
+  host.docker.internal: "{{ docker_custom_gateway }}"
 ```
 
 ### Q3: 如何添加新的 Ingress 规则？

@@ -25,7 +25,7 @@ cloudflared_ingress_rules:
     service: "http://host.docker.internal:3000"
   - service: "http_status:404"
 cloudflared_etc_hosts:
-  host.docker.internal: "{{ docker_shared_network_gateway }}"
+  host.docker.internal: "{{ docker_custom_network_gateway }}"
 app_stack_enabled: false
 prometheus_enabled: true
 alertmanager_enabled: true

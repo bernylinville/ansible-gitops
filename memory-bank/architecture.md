@@ -12,12 +12,12 @@ This minimal scaffold enforces the agreed Ansible-first layout and is the founda
 
 ## Shared Docker Network (M4 extension)
 
-- M4 增补 `roles/docker_shared_network`，在 `geerlingguy.docker` 完成安装后立即创建/维护所有 self-hosted 服务共用的 `proxy_net` 桥接网络（默认 10.203.57.0/24，可通过 `docker_shared_network_*` 变量覆盖）。
+- M4 增补 `roles/docker_custom`，在 `geerlingguy.docker` 完成安装后立即创建/维护所有 self-hosted 服务共用的 `proxy_net` 桥接网络（默认 10.203.57.0/24，可通过 `docker_custom_*` 变量覆盖）。
 - 任意容器（Cloudflared、业务服务等）都必须加入该网络，确保后续反向代理/零信任隧道的连通性；网络属性（subnet/gateway/attachable）集中定义在 `inventory/group_vars/vps/main.yml`，便于统一管理。
 
 ## Cloudflared + Proxy Network (M5 Step 1)
 
-- `roles/cloudflared` 专注于渲染 `/opt/cloudflared/{config.yml,credentials.json}` 并运行 `cloudflare/cloudflared:<tag>` + `traefik/whoami` 验证容器，网络依赖交由前述 `docker_shared_network` role 提供。
+- `roles/cloudflared` 专注于渲染 `/opt/cloudflared/{config.yml,credentials.json}` 并运行 `cloudflare/cloudflared:<tag>` + `traefik/whoami` 验证容器，网络依赖交由前述 `docker_custom` role 提供。
 - 凭据改为 `cloudflared_tunnel_credentials_json`（`cloudflared tunnel create` 输出的 JSON），通过 Vault 在 `inventory/group_vars/vps/secrets.yml` 注入，模板渲染时直接写入 `credentials.json`。
 - `inventory/host_vars/<hostname>/main.yml` 中按主机粒度声明 Cloudflared 镜像 tag、数据目录与 Ingress 规则；生产主机可关闭 `cloudflared_whoami_enabled`/`cloudflared_verify_whoami`，而 Molecule Host 则开启它们以运行 `traefik/whoami` 验证容器，自带 catch-all `http_status:404` 兜底。
 - `cloudflared_tunnel_credentials_json` 中已经包含 Tunnel ID；Role 会在运行时从 JSON 自动解析，无需在公开变量额外声明，且 Vault 仍是唯一的数据源。

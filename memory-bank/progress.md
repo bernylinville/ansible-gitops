@@ -90,8 +90,8 @@ Next dev can proceed with M1 Step 2 once any additional validation is complete.
 
 ## 2025-11-26 – Shared Docker network & Molecule Cloudflared tests
 
-- Extracted the shared `proxy_net` bridge creation into a dedicated `roles/docker_shared_network` role (invoked right after `geerlingguy.docker`) so every containerized workload—including Cloudflared—joins the same network provisioned during M4.
-- Updated `roles/cloudflared` to consume the shared network, rely solely on vaulted `cloudflared_tunnel_credentials_json`, and keep network concerns separated; inventory docs now describe the `docker_shared_network_*` knobs plus a `secrets.example.yml`.
+- Extracted the shared `proxy_net` bridge creation into a dedicated `roles/docker_custom` role (invoked right after `geerlingguy.docker`) so every containerized workload—including Cloudflared—joins the same network provisioned during M4.
+- Updated `roles/cloudflared` to consume the shared network, rely solely on vaulted `cloudflared_tunnel_credentials_json`, and keep network concerns separated; inventory docs now describe the `docker_custom_*` knobs plus a `secrets.example.yml`.
 - Enhanced the Molecule scenario: `cloudflared_enabled` is now true for the Debian 13 instance with a sleep loop command, and `verify.yml` asserts proxy network existence, config/credential files, container attachment (Cloudflared + whoami), and optionally performs an HTTPS GET to `whoami.<domain>` when `cloudflared_verify_whoami`/`MOLECULE_CLOUDFLARE_VERIFY` are enabled—covering both structural and live tunnel checks.
 - Molecule links `group_vars/vps/secrets.yml` directly到生产库存文件，且 `molecule/default/molecule.yml` 通过 `ANSIBLE_CONFIG=${MOLECULE_PROJECT_DIRECTORY}/ansible.cfg` 强制加载仓库级配置（其中 `vault_password_file = .vault-password`），因此只需在仓库根放置该文件（或运行时覆盖 `--vault-password-file`）即可使用真实 Cloudflare 凭据运行测试且无需复制密文。
 

@@ -33,6 +33,7 @@
         insertafter: '^127\.0\.0\.1.*'
         state: present
       become: true
+      tags: [notest]
 
   roles:
     - role: geerlingguy.ntp
@@ -42,7 +43,7 @@
     # - geerlingguy.firewall
     - role: geerlingguy.docker
       become: true
-    - role: docker_shared_network
+    - role: docker_custom
     - role: traefik
     - role: gemi2api
     - role: prometheus.prometheus.node_exporter

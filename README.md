@@ -72,7 +72,7 @@ Ansible GitOps 旨在以声明式、可审计的方式管理个人 VPS 与 Homel
 ├── playbooks/site.yml        # GitOps 入口，编排 geerlingguy + 监控 + Cloudflared
 ├── roles/
 │   ├── cloudflared/          # 渲染 config/credentials 并运行容器
-│   └── docker_shared_network # 统一维护 proxy_net 桥接网络
+│   └── docker_custom # 统一维护 proxy_net 桥接网络
 ├── collections/requirements.yml
 ├── requirements.yml          # geerlingguy.* 版本锁
 ├── molecule/                 # 默认场景校验角色与隧道回归
@@ -82,7 +82,7 @@ Ansible GitOps 旨在以声明式、可审计的方式管理个人 VPS 与 Homel
 ### 核心能力
 
 - **安全基线**：`geerlingguy.security` + `geerlingguy.firewall` 固化 SSH 加固与最小暴露端口策略。
-- **容器平台**：`geerlingguy.docker` 负责 Engine/Compose 安装，`docker_shared_network` 在安装后创建 `proxy_net` 供 Cloudflared 与业务容器共享。
+- **容器平台**：`geerlingguy.docker` 负责 Engine/Compose 安装，`docker_custom` 在安装后创建 `proxy_net` 供 Cloudflared 与业务容器共享。
 - **Zero-Trust 接入**：`cloudflared` role 渲染 `/opt/cloudflared/{config.yml,credentials.json}` 并将 Ingress 规则配置化。
 - **监控栈**：对 `lab-sfo-txy-01` 启用 Prometheus + Alertmanager + Grafana，默认通过 Cloudflared 暴露，避免额外放行端口。
 - **GitOps Ready**：`ansible.cfg` 指定 `vault_password_file`，CI 仅需注入 Vault 密码与 SSH Key 即可执行 `playbooks/site.yml`。

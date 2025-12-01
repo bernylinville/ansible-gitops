@@ -107,7 +107,7 @@ traefik_whoami_domain: "whoami.{{ domain_name }}"
 
 ### 角色依赖
 
-- **`docker_shared_network`**: 提供 `proxy_net` 网络
+- **`docker_custom`**: 提供 `proxy_net` 网络
 - **`geerlingguy.docker`**: 提供 Docker Engine
 
 ### 集合依赖
@@ -127,7 +127,7 @@ traefik_enable: false
 traefik_image: traefik
 traefik_image_tag: v3.6.2
 traefik_container_name: traefik
-traefik_network_name: "{{ docker_shared_network_name }}"  # proxy_net
+traefik_network_name: "{{ docker_custom_name }}"  # proxy_net
 traefik_acme_resolver_name: myresolver
 traefik_dns_challenge_provider: cloudflare
 traefik_acme_ca_server: https://acme-v02.api.letsencrypt.org/directory

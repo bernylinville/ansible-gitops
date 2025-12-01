@@ -63,7 +63,7 @@
 - name: Build Cloudflared network attachment list
   ansible.builtin.set_fact:
     cloudflared_network_attachments: >-
-      {{ ([{'name': docker_shared_network_name}] if docker_shared_network_name is defined and docker_shared_network_name else []) +
+      {{ ([{'name': docker_custom_network_name}] if docker_custom_network_name is defined and docker_custom_network_name else []) +
          (cloudflared_extra_networks | default([])) }}
 
 - name: Manage whoami verification container

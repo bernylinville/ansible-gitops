@@ -91,14 +91,14 @@
 
     - name: Inspect shared proxy network
       community.docker.docker_network_info:
-        name: "{{ docker_shared_network_name }}"
+        name: "{{ docker_custom_network_name }}"
       register: proxy_network_info
 
     - name: Assert proxy network exists
       ansible.builtin.assert:
         that:
           - proxy_network_info.exists
-        fail_msg: "Shared Docker network {{ docker_shared_network_name }} is missing"
+        fail_msg: "Shared Docker network {{ docker_custom_network_name }} is missing"
 
     # - name: Stat cloudflared config
     #   ansible.builtin.stat:
@@ -133,7 +133,7 @@
     #     that:
     #       - cloudflared_container_info.exists
     #       - (whoami_container_info.exists | default(true))
-    #       - docker_shared_network_name in (cloudflared_container_info.container.NetworkSettings.Networks.keys())
+    #       - docker_custom_network_name in (cloudflared_container_info.container.NetworkSettings.Networks.keys())
     #     fail_msg: "Cloudflared/Whoami containers missing or detached from proxy network"
 
     # - name: Query Cloudflared whoami endpoint

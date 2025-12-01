@@ -33,7 +33,7 @@
         "roles/cloudflared/templates/config.yml.j2"
       ],
       "documentation": "roles/cloudflared/CLAUDE.md",
-      "dependencies": ["docker_shared_network", "community.docker"],
+      "dependencies": ["docker_custom", "community.docker"],
       "coverage": {
         "tasks_scanned": true,
         "defaults_scanned": true,
@@ -43,14 +43,14 @@
       }
     },
     {
-      "name": "docker_shared_network",
+      "name": "docker_custom",
       "type": "custom_role",
-      "path": "roles/docker_shared_network",
+      "path": "roles/docker_custom",
       "language": "yaml",
       "status": "production",
-      "entry_points": ["roles/docker_shared_network/tasks/main.yml"],
-      "key_files": ["roles/docker_shared_network/defaults/main.yml"],
-      "documentation": "roles/docker_shared_network/CLAUDE.md",
+      "entry_points": ["roles/docker_custom/tasks/main.yml"],
+      "key_files": ["roles/docker_custom/defaults/main.yml"],
+      "documentation": "roles/docker_custom/CLAUDE.md",
       "dependencies": ["geerlingguy.docker", "community.docker"],
       "coverage": {
         "tasks_scanned": true,
@@ -72,7 +72,7 @@
         "roles/traefik/templates/dynamic.yml.j2"
       ],
       "documentation": "roles/traefik/CLAUDE.md",
-      "dependencies": ["docker_shared_network", "community.docker"],
+      "dependencies": ["docker_custom", "community.docker"],
       "coverage": {
         "tasks_scanned": true,
         "defaults_scanned": true,
@@ -90,7 +90,7 @@
       "entry_points": ["roles/gemi2api/tasks/main.yml"],
       "key_files": ["roles/gemi2api/defaults/main.yml"],
       "documentation": "roles/gemi2api/CLAUDE.md",
-      "dependencies": ["docker_shared_network", "community.docker"],
+      "dependencies": ["docker_custom", "community.docker"],
       "coverage": {
         "tasks_scanned": true,
         "defaults_scanned": true,
@@ -178,7 +178,7 @@
           "geerlingguy.ntp",
           "geerlingguy.security",
           "geerlingguy.docker",
-          "docker_shared_network",
+          "docker_custom",
           "traefik",
           "gemi2api",
           "prometheus.prometheus.node_exporter",
@@ -195,7 +195,7 @@
           "geerlingguy.ntp",
           "geerlingguy.security",
           "geerlingguy.docker",
-          "docker_shared_network",
+          "docker_custom",
           "prometheus.prometheus.node_exporter"
         ],
         "monitoring_enabled": false,
@@ -209,7 +209,7 @@
           "geerlingguy.ntp",
           "geerlingguy.security",
           "geerlingguy.docker",
-          "docker_shared_network",
+          "docker_custom",
           "prometheus.prometheus.node_exporter"
         ],
         "monitoring_enabled": false,
@@ -236,7 +236,7 @@
           "firewall_*",
           "security_*",
           "ntp_*",
-          "docker_shared_network_*"
+          "docker_custom_*"
         ]
       },
       {
@@ -257,7 +257,7 @@
         "geerlingguy.ntp",
         "geerlingguy.security",
         "geerlingguy.docker",
-        "docker_shared_network",
+        "docker_custom",
         "traefik",
         "gemi2api",
         "prometheus.prometheus.node_exporter"
@@ -284,7 +284,7 @@
       "verified_roles": [
         "geerlingguy.security (fail2ban)",
         "geerlingguy.docker",
-        "docker_shared_network",
+        "docker_custom",
         "prometheus.prometheus.node_exporter"
       ],
       "unverified_roles": [

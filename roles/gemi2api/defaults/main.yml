@@ -6,7 +6,7 @@ gemi2api_container_name: gemi2api
 gemi2api_bind_address: 127.0.0.1
 gemi2api_bind_port: 8000
 gemi2api_container_port: 8000
-gemi2api_network_name: "{{ docker_shared_network_name }}"
+gemi2api_network_name: "{{ docker_custom_network_name }}"
 gemi2api_pull: true
 gemi2api_restart_policy: unless-stopped
 gemi2api_env_defaults:

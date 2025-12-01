@@ -97,7 +97,7 @@ gemi2api_bind_address: "{{ tailscale_ip }}"  # 绑定到 Tailscale 内网 IP
 
 ### 角色依赖
 
-- **`docker_shared_network`**: 提供 `proxy_net` 网络
+- **`docker_custom`**: 提供 `proxy_net` 网络
 - **`geerlingguy.docker`**: 提供 Docker Engine
 
 ### 集合依赖
@@ -120,7 +120,7 @@ gemi2api_container_name: gemi2api
 gemi2api_bind_address: 127.0.0.1
 gemi2api_bind_port: 8000
 gemi2api_container_port: 8000
-gemi2api_network_name: "{{ docker_shared_network_name }}"  # proxy_net
+gemi2api_network_name: "{{ docker_custom_name }}"  # proxy_net
 gemi2api_pull: true
 gemi2api_restart_policy: unless-stopped
 gemi2api_env_defaults:

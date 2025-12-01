@@ -76,12 +76,12 @@ ansible_python_interpreter: /usr/bin/python3
 - `inventory/group_vars/vps/main.yml` 还需定义共享 Docker 网络参数：
 
 ```yaml
-docker_shared_network_name: proxy_net
-docker_shared_network_subnet: 10.203.57.0/24
-docker_shared_network_gateway: 10.203.57.1
-docker_shared_network_ipam_config:
-  - subnet: "{{ docker_shared_network_subnet }}"
-    gateway: "{{ docker_shared_network_gateway }}"
+docker_custom_name: proxy_net
+docker_custom_subnet: 10.203.57.0/24
+docker_custom_gateway: 10.203.57.1
+docker_custom_ipam_config:
+  - subnet: "{{ docker_custom_subnet }}"
+    gateway: "{{ docker_custom_gateway }}"
 ```
 
 - 在 `inventory/group_vars/vps/secrets.yml` 中放置共享的 Cloudflared Tunnel 凭据 JSON（`cloudflared tunnel create` 生成，内含 Tunnel ID）：
@@ -179,18 +179,18 @@ roles:
   - geerlingguy.security
   - geerlingguy.firewall
   - geerlingguy.docker
-  - docker_shared_network
+  - docker_custom
 ```
 
 - 验证：使用 Molecule (Vagrant Driver) 进行本地测试，避免 Docker-in-Docker 问题。
 - 生产验证：SSH 到服务器执行 `docker --version`、`docker compose version`；非 root 用户 `docker ps` 可用。
-- 网络：同阶段确认 `docker network inspect proxy_net` 成功（共享 `docker_shared_network_name` 供所有容器加入）。
+- 网络：同阶段确认 `docker network inspect proxy_net` 成功（共享 `docker_custom_name` 供所有容器加入）。
 
 ---
 
 ## M5：Cloudflare Tunnel（容器化）
 
-1. 自定义轻量 Role `roles/cloudflared`（依赖 `community.docker` Collection，前置共享网络已由 `docker_shared_network` Role 创建）：
+1. 自定义轻量 Role `roles/cloudflared`（依赖 `community.docker` Collection，前置共享网络已由 `docker_custom` Role 创建）：
 
 ```yaml
 - name: Render /opt/cloudflared/config.yml
@@ -209,7 +209,7 @@ roles:
     image: cloudflare/cloudflared:2025.11.1 # 示例 tag，实际使用前可按当时稳定版调整并同步文档
     restart_policy: unless-stopped
     networks:
-      - name: "{{ docker_shared_network_name }}"
+      - name: "{{ docker_custom_name }}"
     command:
       - "tunnel"
       - "--config"

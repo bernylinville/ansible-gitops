@@ -66,7 +66,7 @@ graph TD
     Roles --> CustomRoles["自定义角色"];
     Roles --> GalaxyRoles["Galaxy 角色"];
     CustomRoles --> Cloudflared["cloudflared"];
-    CustomRoles --> DockerNet["docker_shared_network"];
+    CustomRoles --> DockerNet["docker_custom"];
     CustomRoles --> Traefik["traefik"];
     CustomRoles --> Gemi2api["gemi2api"];
     GalaxyRoles --> GeerDocker["geerlingguy.docker"];
@@ -76,7 +76,7 @@ graph TD
     Molecule --> MolDefault["default/"];
 
     click Cloudflared "./roles/cloudflared/CLAUDE.md" "查看 cloudflared 模块文档"
-    click DockerNet "./roles/docker_shared_network/CLAUDE.md" "查看 docker_shared_network 模块文档"
+    click DockerNet "./roles/docker_custom/CLAUDE.md" "查看 docker_custom 模块文档"
     click Traefik "./roles/traefik/CLAUDE.md" "查看 traefik 模块文档"
     click Gemi2api "./roles/gemi2api/CLAUDE.md" "查看 gemi2api 模块文档"
 ```
@@ -88,7 +88,7 @@ graph TD
 | 模块路径 | 类型 | 职责 | 状态 |
 |----------|------|------|------|
 | `roles/cloudflared` | 自定义 | 部署 Cloudflare Tunnel 容器，渲染配置与凭据文件 | ✅ 生产 |
-| `roles/docker_shared_network` | 自定义 | 创建 `proxy_net` 共享桥接网络（10.203.57.0/24） | ✅ 生产 |
+| `roles/docker_custom` | 自定义 | 创建 `proxy_net` 共享桥接网络（10.203.57.0/24） | ✅ 生产 |
 | `roles/traefik` | 自定义 | 部署 Traefik v3 反向代理，支持 ACME DNS-01 自动证书 | ✅ 生产 |
 | `roles/gemi2api` | 自定义 | 部署 Gemini to OpenAI API 转换服务 | ✅ 生产 |
 | `geerlingguy.docker` | Galaxy | 安装 Docker Engine + Compose 插件 | ✅ v7.8.0 |
@@ -180,7 +180,7 @@ ansible-gitops/
 │   └── site.yml            # 主编排入口
 ├── roles/
 │   ├── cloudflared/        # 自定义：Cloudflare Tunnel
-│   ├── docker_shared_network/  # 自定义：共享 Docker 网络
+│   ├── docker_custom/  # 自定义：共享 Docker 网络
 │   ├── traefik/            # 自定义：Traefik 反向代理
 │   ├── gemi2api/           # 自定义：Gemini API 服务
 │   └── geerlingguy.*/      # Galaxy 安装的社区角色（gitignore）
@@ -288,7 +288,7 @@ yamllint .
 - **根文档**: `/home/kchou/Code/ansible-gitops/CLAUDE.md` (当前文件)
 - **模块文档**:
   - [cloudflared](./roles/cloudflared/CLAUDE.md)
-  - [docker_shared_network](./roles/docker_shared_network/CLAUDE.md)
+  - [docker_custom](./roles/docker_custom/CLAUDE.md)
   - [traefik](./roles/traefik/CLAUDE.md)
   - [gemi2api](./roles/gemi2api/CLAUDE.md)
 - **架构决策**: `memory-bank/architecture.md`
@@ -376,7 +376,7 @@ ansible-vault rekey inventory/group_vars/vps/secrets.yml
 1. `geerlingguy.ntp` - 时间同步
 2. `geerlingguy.security` - SSH 加固 + Fail2ban
 3. `geerlingguy.docker` - Docker 安装
-4. `docker_shared_network` - 创建 proxy_net
+4. `docker_custom` - 创建 proxy_net
 5. `traefik` - 反向代理（条件性）
 6. `gemi2api` - API 服务（条件性）
 7. `prometheus.prometheus.node_exporter` - 节点监控

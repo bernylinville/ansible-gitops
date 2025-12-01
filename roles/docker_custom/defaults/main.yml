@@ -1,0 +1,19 @@
+---
+# Docker network configuration
+docker_custom_network_name: proxy_net
+docker_custom_network_subnet: "10.203.57.0/24"
+docker_custom_network_gateway: "10.203.57.1"
+docker_custom_network_driver: bridge
+docker_custom_network_attachable: true
+docker_custom_network_enable_ipv6: false
+docker_custom_network_labels: {}
+docker_custom_network_create: true
+docker_custom_network_ipam_config:
+  - subnet: "{{ docker_custom_network_subnet }}"
+    gateway: "{{ docker_custom_network_gateway }}"
+
+# Docker Hub login configuration
+docker_custom_dockerhub_login_enabled: false
+docker_custom_dockerhub_username: ""
+docker_custom_dockerhub_password: ""
+docker_custom_dockerhub_registry_url: "https://index.docker.io/v1/"

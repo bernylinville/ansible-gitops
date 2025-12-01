@@ -6,7 +6,7 @@ traefik_container_name: traefik
 traefik_pull: true
 traefik_state: started
 traefik_restart_policy: unless-stopped
-traefik_network_name: "{{ docker_shared_network_name }}"
+traefik_network_name: "{{ docker_custom_network_name }}"
 traefik_networks:
   - name: "{{ traefik_network_name }}"
 traefik_networks_cli_compatible: true
