@@ -1,0 +1,91 @@
+---
+# ========== 全局配置 ==========
+new_api_enable: false
+new_api_data_directory: /opt/new-api
+new_api_postgres_data_directory: "{{ new_api_data_directory }}/postgres"
+new_api_redis_data_directory: "{{ new_api_data_directory }}/redis"
+new_api_logs_directory: "{{ new_api_data_directory }}/logs"
+new_api_network_name: "{{ docker_custom_network_name }}"
+new_api_restart_policy: unless-stopped
+new_api_state: started
+new_api_pull: true
+
+# ========== PostgreSQL 容器配置 ==========
+new_api_postgres_image: postgres
+new_api_postgres_image_tag: 15.15-trixie
+new_api_postgres_container_name: new-api-postgres
+new_api_postgres_container_port: 5432
+
+new_api_postgres_db: new-api
+new_api_postgres_user: new-api
+new_api_postgres_password: ""
+
+new_api_postgres_env_defaults:
+  POSTGRES_DB: "{{ new_api_postgres_db }}"
+  POSTGRES_USER: "{{ new_api_postgres_user }}"
+  POSTGRES_PASSWORD: "{{ new_api_postgres_password }}"
+
+new_api_postgres_env_overrides: {}
+
+new_api_postgres_healthcheck:
+  test:
+    - CMD-SHELL
+    - "pg_isready -U {{ new_api_postgres_user }}"
+  interval: 10s
+  timeout: 5s
+  retries: 5
+
+# ========== Redis 容器配置 ==========
+new_api_redis_image: redis
+new_api_redis_image_tag: 7.4.7
+new_api_redis_container_name: new-api-redis
+new_api_redis_container_port: 6379
+
+new_api_redis_healthcheck:
+  test:
+    - CMD
+    - redis-cli
+    - ping
+  interval: 10s
+  timeout: 3s
+  retries: 5
+
+# ========== New-API 主服务配置 ==========
+new_api_image: calciumion/new-api
+new_api_image_tag: v0.9.27-patch.1
+new_api_container_name: new-api
+new_api_bind_address: "{{ tailscale_ip }}"
+new_api_bind_port: 3000
+new_api_container_port: 3000
+
+new_api_db_dsn: >-
+  postgresql://{{ new_api_postgres_user }}:{{ new_api_postgres_password }}@{{
+  new_api_postgres_container_name }}:{{ new_api_postgres_container_port }}/{{
+  new_api_postgres_db }}
+
+new_api_redis_conn_string: "redis://{{ new_api_redis_container_name }}"
+
+new_api_env_defaults:
+  SQL_DSN: "{{ new_api_db_dsn }}"
+  REDIS_CONN_STRING: "{{ new_api_redis_conn_string }}"
+  TZ: "{{ ntp_timezone | default('America/Los_Angeles') }}"
+  ERROR_LOG_ENABLED: "true"
+  BATCH_UPDATE_ENABLED: "true"
+  STREAMING_TIMEOUT: "300"
+
+new_api_env_overrides: {}
+
+new_api_healthcheck:
+  test:
+    - CMD-SHELL
+    - "wget -q -O - http://localhost:{{ new_api_container_port }}/api/status | grep -o '\"success\":\\s*true' || exit 1"
+  interval: 30s
+  timeout: 10s
+  retries: 3
+
+# ========== 卷挂载（使用 Named Volumes） ==========
+new_api_labels: {}
+
+new_api_volumes:
+  - new-api-data:/data
+  - new-api-logs:/app/logs

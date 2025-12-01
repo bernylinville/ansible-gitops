@@ -26,13 +26,13 @@ traefik_file_provider_config:
         service: gemi2api
         middlewares:
           - http-compression
-      axonhub:
-        rule: 'Host("axonhub.{{ domain_name }}")'
+      new-api:
+        rule: 'Host("api.{{ domain_name }}")'
         entryPoints:
           - websecure
         tls:
           certResolver: "{{ traefik_acme_resolver_name }}"
-        service: axonhub
+        service: new-api
         middlewares:
           - http-compression
     services:
@@ -40,10 +40,10 @@ traefik_file_provider_config:
         loadBalancer:
           servers:
             - url: "http://{{ hostvars['lab-sfo-txy-01'].tailscale_ip }}:8000"
-      axonhub:
+      new-api:
         loadBalancer:
           servers:
-            - url: "http://{{ hostvars['lab-lax-rnd-01'].tailscale_ip }}:8090"
+            - url: "http://{{ hostvars['lab-lax-rnd-01'].tailscale_ip }}:3000"
 traefik_env_overrides:
   # Cloudflare DNS challenge now uses scoped API Tokens.
   CF_DNS_API_TOKEN: "{{ traefik_cloudflare_api_key | default('', true) }}"

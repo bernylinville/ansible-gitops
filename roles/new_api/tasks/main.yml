@@ -1,0 +1,113 @@
+---
+# ========== 启用时的任务 ==========
+- name: 创建 New-API 数据目录
+  when: new_api_enable | bool
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - "{{ new_api_data_directory }}"
+    - "{{ new_api_logs_directory }}"
+
+- name: 拉取 PostgreSQL 镜像
+  when: new_api_enable | bool and new_api_pull | bool
+  community.docker.docker_image:
+    name: "{{ new_api_postgres_image }}:{{ new_api_postgres_image_tag }}"
+    source: pull
+    force_source: true
+
+- name: 拉取 Redis 镜像
+  when: new_api_enable | bool and new_api_pull | bool
+  community.docker.docker_image:
+    name: "{{ new_api_redis_image }}:{{ new_api_redis_image_tag }}"
+    source: pull
+    force_source: true
+
+- name: 拉取 New-API 镜像
+  when: new_api_enable | bool and new_api_pull | bool
+  community.docker.docker_image:
+    name: "{{ new_api_image }}:{{ new_api_image_tag }}"
+    source: pull
+    force_source: true
+
+- name: 部署 PostgreSQL 容器
+  when: new_api_enable | bool
+  community.docker.docker_container:
+    name: "{{ new_api_postgres_container_name }}"
+    image: "{{ new_api_postgres_image }}:{{ new_api_postgres_image_tag }}"
+    pull: false
+    restart_policy: "{{ new_api_restart_policy }}"
+    state: "{{ new_api_state }}"
+    env: >-
+      {{ new_api_postgres_env_defaults |
+      combine(new_api_postgres_env_overrides, recursive=True) }}
+    volumes:
+      - new-api-pg-data:/var/lib/postgresql/data
+    networks:
+      - name: "{{ new_api_network_name }}"
+    networks_cli_compatible: true
+    healthcheck: "{{ new_api_postgres_healthcheck }}"
+
+- name: 等待 PostgreSQL 就绪
+  when: new_api_enable | bool
+  community.docker.docker_container_exec:
+    container: "{{ new_api_postgres_container_name }}"
+    command: pg_isready -U "{{ new_api_postgres_user }}"
+  register: new_api_postgres_ready
+  until: new_api_postgres_ready.rc == 0
+  retries: 10
+  delay: 3
+  changed_when: false
+  failed_when: false
+
+- name: 部署 Redis 容器
+  when: new_api_enable | bool
+  community.docker.docker_container:
+    name: "{{ new_api_redis_container_name }}"
+    image: "{{ new_api_redis_image }}:{{ new_api_redis_image_tag }}"
+    pull: false
+    restart_policy: "{{ new_api_restart_policy }}"
+    state: "{{ new_api_state }}"
+    volumes:
+      - new-api-redis-data:/data
+    networks:
+      - name: "{{ new_api_network_name }}"
+    networks_cli_compatible: true
+    healthcheck: "{{ new_api_redis_healthcheck }}"
+
+- name: 部署 New-API 主服务容器
+  when: new_api_enable | bool
+  community.docker.docker_container:
+    name: "{{ new_api_container_name }}"
+    image: "{{ new_api_image }}:{{ new_api_image_tag }}"
+    pull: false
+    restart_policy: "{{ new_api_restart_policy }}"
+    state: "{{ new_api_state }}"
+    command: "--log-dir /app/logs"
+    env: >-
+      {{ new_api_env_defaults |
+      combine(new_api_env_overrides, recursive=True) }}
+    published_ports:
+      - "{{ new_api_bind_address }}:{{ new_api_bind_port }}:{{ new_api_container_port }}"
+    networks:
+      - name: "{{ new_api_network_name }}"
+    networks_cli_compatible: true
+    volumes: "{{ new_api_volumes }}"
+    labels: "{{ new_api_labels }}"
+    healthcheck: "{{ new_api_healthcheck }}"
+
+# ========== 禁用时的清理任务 ==========
+- name: 删除已禁用的 New-API 容器
+  when: not new_api_enable | bool
+  community.docker.docker_container:
+    name: "{{ item }}"
+    state: absent
+    force_kill: true
+  loop:
+    - "{{ new_api_container_name }}"
+    - "{{ new_api_postgres_container_name }}"
+    - "{{ new_api_redis_container_name }}"
