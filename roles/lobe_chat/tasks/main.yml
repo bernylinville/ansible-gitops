@@ -1,0 +1,69 @@
+---
+# LobeChat 部署任务
+
+# ========== 启用时的任务 ==========
+- name: 创建 LobeChat 数据目录
+  when: lobe_chat_enable | bool
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - "{{ lobe_chat_data_directory }}"
+    - "{{ lobe_chat_postgres_data_directory }}"
+
+- name: 部署 PostgreSQL 容器
+  when: lobe_chat_enable | bool
+  community.docker.docker_container:
+    name: "{{ lobe_chat_postgres_container_name }}"
+    image: "{{ lobe_chat_postgres_image }}:{{ lobe_chat_postgres_image_tag }}"
+    pull: "{{ 'always' if lobe_chat_pull | bool else 'missing' }}"
+    restart_policy: "{{ lobe_chat_restart_policy }}"
+    state: "{{ lobe_chat_state }}"
+    env: "{{ lobe_chat_postgres_env_defaults | combine(lobe_chat_postgres_env_overrides, recursive=True) }}"
+    volumes:
+      - "{{ lobe_chat_postgres_data_directory }}:/var/lib/postgresql/data:rw"
+    networks:
+      - name: "{{ lobe_chat_network_name }}"
+    networks_cli_compatible: true
+    healthcheck: "{{ lobe_chat_postgres_healthcheck }}"
+
+- name: 等待 PostgreSQL 就绪
+  when: lobe_chat_enable | bool
+  community.docker.docker_container_exec:
+    container: "{{ lobe_chat_postgres_container_name }}"
+    command: pg_isready -U "{{ lobe_chat_postgres_user }}"
+  register: postgres_ready
+  until: postgres_ready.rc == 0
+  retries: 10
+  delay: 3
+  changed_when: false
+  failed_when: false
+
+- name: 部署 LobeChat 容器
+  when: lobe_chat_enable | bool
+  community.docker.docker_container:
+    name: "{{ lobe_chat_container_name }}"
+    image: "{{ lobe_chat_image }}:{{ lobe_chat_image_tag }}"
+    pull: "{{ 'always' if lobe_chat_pull | bool else 'missing' }}"
+    restart_policy: "{{ lobe_chat_restart_policy }}"
+    state: "{{ lobe_chat_state }}"
+    env: "{{ lobe_chat_env_defaults | combine(lobe_chat_env_overrides, recursive=True) }}"
+    networks:
+      - name: "{{ lobe_chat_network_name }}"
+    networks_cli_compatible: true
+    labels: "{{ lobe_chat_labels_defaults | combine(lobe_chat_labels_overrides, recursive=True) }}"
+
+# ========== 禁用时的清理任务 ==========
+- name: 删除已禁用的 LobeChat 容器
+  when: not lobe_chat_enable | bool
+  community.docker.docker_container:
+    name: "{{ item }}"
+    state: absent
+    force_kill: true
+  loop:
+    - "{{ lobe_chat_container_name }}"
+    - "{{ lobe_chat_postgres_container_name }}"

@@ -1,0 +1,97 @@
+---
+# LobeChat 角色默认变量
+
+# ========== 全局配置 ==========
+lobe_chat_enable: false
+lobe_chat_data_directory: /opt/lobe_chat
+lobe_chat_postgres_data_directory: "{{ lobe_chat_data_directory }}/data"
+lobe_chat_network_name: "{{ docker_custom_network_name }}"
+lobe_chat_restart_policy: unless-stopped
+lobe_chat_state: started
+lobe_chat_pull: true
+
+# ========== PostgreSQL 容器配置 ==========
+lobe_chat_postgres_image: pgvector/pgvector
+lobe_chat_postgres_image_tag: 0.8.1-pg16-trixie
+lobe_chat_postgres_container_name: lobe-postgres
+lobe_chat_postgres_container_port: 5432
+
+# PostgreSQL 环境变量
+lobe_chat_postgres_db: lobe
+lobe_chat_postgres_user: lobe
+lobe_chat_postgres_password: ""  # 必须通过 secrets.yml 覆盖
+
+lobe_chat_postgres_env_defaults:
+  POSTGRES_DB: "{{ lobe_chat_postgres_db }}"
+  POSTGRES_USER: "{{ lobe_chat_postgres_user }}"
+  POSTGRES_PASSWORD: "{{ lobe_chat_postgres_password }}"
+
+lobe_chat_postgres_env_overrides: {}
+
+# PostgreSQL 健康检查
+lobe_chat_postgres_healthcheck:
+  test:
+    - CMD-SHELL
+    - "pg_isready -U {{ lobe_chat_postgres_user }}"
+  interval: 5s
+  timeout: 5s
+  retries: 5
+
+# ========== LobeChat 容器配置 ==========
+lobe_chat_image: bernylinville/lobe-chat-db-clerk
+lobe_chat_image_tag: v1.143.0
+lobe_chat_container_name: lobe-chat
+lobe_chat_container_port: 3210
+
+# LobeChat 环境变量
+lobe_chat_app_url: "https://lobe.{{ domain_name | default('example.com', true) }}"
+lobe_chat_service_mode: server
+lobe_chat_database_driver: node
+lobe_chat_database_url: "postgresql://{{ lobe_chat_postgres_user }}:{{ lobe_chat_postgres_password }}@{{ lobe_chat_postgres_container_name }}:{{ lobe_chat_postgres_container_port }}/{{ lobe_chat_postgres_db }}"
+
+# 必须通过 secrets.yml 覆盖的敏感变量
+lobe_chat_key_vaults_secret: ""  # openssl rand -base64 32
+lobe_chat_s3_access_key_id: ""
+lobe_chat_s3_secret_access_key: ""
+lobe_chat_s3_bucket: lobechat
+lobe_chat_s3_endpoint: ""
+lobe_chat_s3_public_domain: ""
+lobe_chat_s3_enable_path_style: "0"
+lobe_chat_clerk_publishable_key: ""
+lobe_chat_clerk_secret_key: ""
+lobe_chat_clerk_webhook_secret: ""
+
+lobe_chat_env_defaults:
+  APP_URL: "{{ lobe_chat_app_url }}"
+  NEXT_PUBLIC_SERVICE_MODE: "{{ lobe_chat_service_mode }}"
+  DATABASE_DRIVER: "{{ lobe_chat_database_driver }}"
+  KEY_VAULTS_SECRET: "{{ lobe_chat_key_vaults_secret }}"
+  DATABASE_URL: "{{ lobe_chat_database_url }}"
+  S3_ACCESS_KEY_ID: "{{ lobe_chat_s3_access_key_id }}"
+  S3_SECRET_ACCESS_KEY: "{{ lobe_chat_s3_secret_access_key }}"
+  S3_BUCKET: "{{ lobe_chat_s3_bucket }}"
+  S3_ENDPOINT: "{{ lobe_chat_s3_endpoint }}"
+  S3_PUBLIC_DOMAIN: "{{ lobe_chat_s3_public_domain }}"
+  S3_ENABLE_PATH_STYLE: "{{ lobe_chat_s3_enable_path_style }}"
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "{{ lobe_chat_clerk_publishable_key }}"
+  CLERK_SECRET_KEY: "{{ lobe_chat_clerk_secret_key }}"
+  CLERK_WEBHOOK_SECRET: "{{ lobe_chat_clerk_webhook_secret }}"
+
+lobe_chat_env_overrides: {}
+
+# ========== Traefik 集成配置 ==========
+lobe_chat_domain: "lobe.{{ domain_name | default('example.com', true) }}"
+lobe_chat_traefik_enabled: true
+lobe_chat_traefik_router_name: lobe-chat
+lobe_chat_traefik_entrypoint: websecure
+lobe_chat_traefik_cert_resolver: "{{ traefik_acme_resolver_name | default('myresolver', true) }}"
+
+lobe_chat_labels_defaults:
+  traefik.enable: "{{ 'true' if lobe_chat_traefik_enabled | bool else 'false' }}"
+  traefik.docker.network: "{{ lobe_chat_network_name }}"
+  traefik.http.routers.{{ lobe_chat_traefik_router_name }}.rule: 'Host("{{ lobe_chat_domain }}")'
+  traefik.http.routers.{{ lobe_chat_traefik_router_name }}.entrypoints: "{{ lobe_chat_traefik_entrypoint }}"
+  traefik.http.routers.{{ lobe_chat_traefik_router_name }}.tls.certresolver: "{{ lobe_chat_traefik_cert_resolver }}"
+  traefik.http.services.{{ lobe_chat_traefik_router_name }}.loadbalancer.server.port: "{{ lobe_chat_container_port }}"
+
+lobe_chat_labels_overrides: {}

@@ -34,3 +34,11 @@ traefik_file_provider_config:
 traefik_env_overrides:
   # Cloudflare DNS challenge now uses scoped API Tokens.
   CF_DNS_API_TOKEN: "{{ traefik_cloudflare_api_key | default('', true) }}"
+
+# LobeChat 配置
+lobe_chat_enable: true
+lobe_chat_image_tag: v1.143.0
+lobe_chat_domain: "chat.{{ domain_name }}"
+lobe_chat_postgres_db: lobe
+lobe_chat_postgres_user: lobe
+lobe_chat_s3_bucket: chat
