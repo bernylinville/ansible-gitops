@@ -15,12 +15,26 @@
     - "{{ lobe_chat_data_directory }}"
     - "{{ lobe_chat_postgres_data_directory }}"
 
+- name: 拉取 PostgreSQL 镜像
+  when: lobe_chat_enable | bool and lobe_chat_pull | bool
+  community.docker.docker_image:
+    name: "{{ lobe_chat_postgres_image }}:{{ lobe_chat_postgres_image_tag }}"
+    source: pull
+    force_source: true
+
+- name: 拉取 LobeChat 镜像
+  when: lobe_chat_enable | bool and lobe_chat_pull | bool
+  community.docker.docker_image:
+    name: "{{ lobe_chat_image }}:{{ lobe_chat_image_tag }}"
+    source: pull
+    force_source: true
+
 - name: 部署 PostgreSQL 容器
   when: lobe_chat_enable | bool
   community.docker.docker_container:
     name: "{{ lobe_chat_postgres_container_name }}"
     image: "{{ lobe_chat_postgres_image }}:{{ lobe_chat_postgres_image_tag }}"
-    pull: "{{ 'always' if lobe_chat_pull | bool else 'missing' }}"
+    pull: false
     restart_policy: "{{ lobe_chat_restart_policy }}"
     state: "{{ lobe_chat_state }}"
     env: "{{ lobe_chat_postgres_env_defaults | combine(lobe_chat_postgres_env_overrides, recursive=True) }}"
@@ -48,7 +62,7 @@
   community.docker.docker_container:
     name: "{{ lobe_chat_container_name }}"
     image: "{{ lobe_chat_image }}:{{ lobe_chat_image_tag }}"
-    pull: "{{ 'always' if lobe_chat_pull | bool else 'missing' }}"
+    pull: false
     restart_policy: "{{ lobe_chat_restart_policy }}"
     state: "{{ lobe_chat_state }}"
     env: "{{ lobe_chat_env_defaults | combine(lobe_chat_env_overrides, recursive=True) }}"
