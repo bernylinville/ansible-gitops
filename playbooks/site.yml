@@ -47,6 +47,7 @@
     - role: traefik
     - role: gemi2api
     - role: lobe_chat
+    - role: axonhub
     - role: prometheus.prometheus.node_exporter
       become: true
     # - role: prometheus.prometheus.prometheus

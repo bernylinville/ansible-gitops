@@ -1,0 +1,32 @@
+# Managed by Ansible - AxonHub Configuration
+
+server:
+  port: {{ axonhub_server_port }}
+  name: "{{ axonhub_server_name }}"
+  base_path: ""
+  request_timeout: "30s"
+  llm_request_timeout: "600s"
+  debug: {{ axonhub_server_debug | lower }}
+
+db:
+  dialect: "{{ axonhub_db_dialect }}"
+  # DSN 通过环境变量 AXONHUB_DB_DSN 传入
+  debug: false
+
+cache:
+  mode: "{{ axonhub_cache_mode }}"
+  memory:
+    expiration: "{{ axonhub_cache_memory_expiration }}"
+    cleanup_interval: "{{ axonhub_cache_memory_cleanup_interval }}"
+
+log:
+  name: "axonhub"
+  level: "{{ axonhub_log_level }}"
+  encoding: "{{ axonhub_log_encoding }}"
+  output: "{{ axonhub_log_output }}"
+
+metrics:
+  enabled: {{ axonhub_metrics_enabled | lower }}
+
+gc:
+  cron: "{{ axonhub_gc_cron }}"

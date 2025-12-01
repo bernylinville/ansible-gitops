@@ -1,0 +1,101 @@
+---
+# ========== 启用时的任务 ==========
+- name: 创建 AxonHub 数据目录
+  when: axonhub_enable | bool
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: >-
+    {{ [axonhub_data_directory, axonhub_postgres_data_directory] +
+    ([axonhub_config_directory] if axonhub_config_enabled | bool else []) }}
+
+- name: 渲染 AxonHub 配置文件
+  when: axonhub_enable | bool and axonhub_config_enabled | bool
+  become: true
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: "{{ axonhub_config_directory }}/config.yml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: 拉取 PostgreSQL 镜像
+  when: axonhub_enable | bool and axonhub_pull | bool
+  community.docker.docker_image:
+    name: "{{ axonhub_postgres_image }}:{{ axonhub_postgres_image_tag }}"
+    source: pull
+    force_source: true
+
+- name: 拉取 AxonHub 镜像
+  when: axonhub_enable | bool and axonhub_pull | bool
+  community.docker.docker_image:
+    name: "{{ axonhub_image }}:{{ axonhub_image_tag }}"
+    source: pull
+    force_source: true
+
+- name: 部署 PostgreSQL 容器
+  when: axonhub_enable | bool
+  community.docker.docker_container:
+    name: "{{ axonhub_postgres_container_name }}"
+    image: "{{ axonhub_postgres_image }}:{{ axonhub_postgres_image_tag }}"
+    pull: false
+    restart_policy: "{{ axonhub_restart_policy }}"
+    state: "{{ axonhub_state }}"
+    env: >-
+      {{ axonhub_postgres_env_defaults |
+      combine(axonhub_postgres_env_overrides, recursive=True) }}
+    volumes:
+      - "{{ axonhub_postgres_data_directory }}:/var/lib/postgresql/data:rw"
+    networks:
+      - name: "{{ axonhub_network_name }}"
+    networks_cli_compatible: true
+    healthcheck: "{{ axonhub_postgres_healthcheck }}"
+
+- name: 等待 PostgreSQL 就绪
+  when: axonhub_enable | bool
+  community.docker.docker_container_exec:
+    container: "{{ axonhub_postgres_container_name }}"
+    command: pg_isready -U "{{ axonhub_postgres_user }}"
+  register: axonhub_postgres_ready
+  until: axonhub_postgres_ready.rc == 0
+  retries: 10
+  delay: 3
+  changed_when: false
+  failed_when: false
+
+- name: 部署 AxonHub 容器
+  when: axonhub_enable | bool
+  community.docker.docker_container:
+    name: "{{ axonhub_container_name }}"
+    image: "{{ axonhub_image }}:{{ axonhub_image_tag }}"
+    pull: false
+    restart_policy: "{{ axonhub_restart_policy }}"
+    state: "{{ axonhub_state }}"
+    env: >-
+      {{ axonhub_env_defaults |
+      combine(axonhub_env_overrides, recursive=True) }}
+    published_ports:
+      - >-
+        {{ axonhub_bind_address }}:{{ axonhub_bind_port }}:{{
+        axonhub_container_port }}
+    networks:
+      - name: "{{ axonhub_network_name }}"
+    networks_cli_compatible: true
+    volumes: "{{ axonhub_config_volumes }}"
+    labels: "{{ axonhub_labels }}"
+    healthcheck: "{{ axonhub_healthcheck }}"
+
+# ========== 禁用时的清理任务 ==========
+- name: 删除已禁用的 AxonHub 容器
+  when: not axonhub_enable | bool
+  community.docker.docker_container:
+    name: "{{ item }}"
+    state: absent
+    force_kill: true
+  loop:
+    - "{{ axonhub_container_name }}"
+    - "{{ axonhub_postgres_container_name }}"

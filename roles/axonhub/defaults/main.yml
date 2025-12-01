@@ -1,0 +1,103 @@
+---
+# ========== 全局配置 ==========
+axonhub_enable: false
+axonhub_data_directory: /opt/axonhub
+axonhub_postgres_data_directory: "{{ axonhub_data_directory }}/data"
+axonhub_config_directory: "{{ axonhub_data_directory }}/config"
+axonhub_network_name: "{{ docker_custom_network_name }}"
+axonhub_restart_policy: unless-stopped
+axonhub_state: started
+axonhub_pull: true
+
+# ========== PostgreSQL 容器配置 ==========
+axonhub_postgres_image: postgres
+axonhub_postgres_image_tag: 15.15-trixie
+axonhub_postgres_container_name: axonhub-postgres
+axonhub_postgres_container_port: 5432
+
+axonhub_postgres_db: axonhub
+axonhub_postgres_user: axonhub
+axonhub_postgres_password: ""
+
+axonhub_postgres_env_defaults:
+  POSTGRES_DB: "{{ axonhub_postgres_db }}"
+  POSTGRES_USER: "{{ axonhub_postgres_user }}"
+  POSTGRES_PASSWORD: "{{ axonhub_postgres_password }}"
+
+axonhub_postgres_env_overrides: {}
+
+axonhub_postgres_healthcheck:
+  test:
+    - CMD-SHELL
+    - "pg_isready -U {{ axonhub_postgres_user }}"
+  interval: 10s
+  timeout: 5s
+  retries: 5
+
+# ========== AxonHub 容器配置 ==========
+axonhub_image: looplj/axonhub
+axonhub_image_tag: v0.5.2
+axonhub_container_name: axonhub-app
+axonhub_bind_address: "{{ tailscale_ip }}"
+axonhub_bind_port: 8090
+axonhub_container_port: 8090
+
+axonhub_db_dialect: postgres
+axonhub_db_dsn: >-
+  postgres://{{ axonhub_postgres_user }}:{{ axonhub_postgres_password }}@{{-
+  axonhub_postgres_container_name }}:{{ axonhub_postgres_container_port }}/{{-
+  axonhub_postgres_db }}?sslmode=disable
+
+axonhub_env_defaults:
+  AXONHUB_DB_DIALECT: "{{ axonhub_db_dialect }}"
+  AXONHUB_DB_DSN: "{{ axonhub_db_dsn }}"
+
+axonhub_env_overrides: {}
+
+axonhub_healthcheck:
+  test:
+    - CMD
+    - wget
+    - --no-verbose
+    - --tries=1
+    - --spider
+    - "http://localhost:{{ axonhub_container_port }}/health"
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+
+# ========== 配置文件选项 ==========
+axonhub_config_enabled: true
+
+# Server 配置
+axonhub_server_port: "{{ axonhub_container_port }}"
+axonhub_server_name: "AxonHub"
+axonhub_server_debug: false
+
+# Cache 配置
+axonhub_cache_mode: memory
+axonhub_cache_memory_expiration: "5s"
+axonhub_cache_memory_cleanup_interval: "10m"
+
+# Logging 配置
+axonhub_log_level: info
+axonhub_log_encoding: json
+axonhub_log_output: stdio
+
+# Metrics 配置
+axonhub_metrics_enabled: false
+
+# GC 配置
+axonhub_gc_cron: "0 2 * * *"
+
+# ========== 卷挂载 ==========
+axonhub_labels: {}
+
+axonhub_config_volume_mapping: >-
+  {{ axonhub_config_directory }}/config.yml:/app/config.yml:ro
+axonhub_config_volumes: >-
+  {{ [axonhub_config_volume_mapping]
+  if axonhub_config_enabled | bool else [] }}
+
+axonhub_additional_volumes: []
