@@ -35,6 +35,8 @@ traefik_env_overrides:
   # Cloudflare DNS challenge now uses scoped API Tokens.
   CF_DNS_API_TOKEN: "{{ traefik_cloudflare_api_key | default('', true) }}"
 
+docker_custom_dockerhub_login_enabled: true
+
 # LobeChat 配置
 lobe_chat_enable: true
 lobe_chat_image_tag: v1.143.0
