@@ -1,0 +1,425 @@
+{
+  "project_name": "ansible-gitops",
+  "description": "Ansible GitOps for VPS & Homelab - Configuration over Creation",
+  "last_scan_timestamp": "2025-12-01T10:13:17+00:00",
+  "scan_summary": {
+    "total_files_estimated": 450,
+    "files_scanned": 85,
+    "coverage_percentage": 19,
+    "scan_method": "adaptive_architecture",
+    "scan_phases_completed": [
+      "phase_a_inventory",
+      "phase_b_module_scan",
+      "phase_c_deep_dive"
+    ]
+  },
+  "repository_metadata": {
+    "git_branch": "main",
+    "last_commit": "8d739a6 feat: Enhance Traefik configuration with file provider and compression settings",
+    "vcs_type": "git",
+    "platform": "linux",
+    "os_version": "Linux 6.17.4-76061704-generic"
+  },
+  "modules": [
+    {
+      "name": "cloudflared",
+      "type": "custom_role",
+      "path": "roles/cloudflared",
+      "language": "yaml",
+      "status": "production",
+      "entry_points": ["roles/cloudflared/tasks/main.yml"],
+      "key_files": [
+        "roles/cloudflared/defaults/main.yml",
+        "roles/cloudflared/templates/config.yml.j2"
+      ],
+      "documentation": "roles/cloudflared/CLAUDE.md",
+      "dependencies": ["docker_shared_network", "community.docker"],
+      "coverage": {
+        "tasks_scanned": true,
+        "defaults_scanned": true,
+        "templates_scanned": true,
+        "tests_scanned": false,
+        "missing_items": ["molecule tests (disabled in production)"]
+      }
+    },
+    {
+      "name": "docker_shared_network",
+      "type": "custom_role",
+      "path": "roles/docker_shared_network",
+      "language": "yaml",
+      "status": "production",
+      "entry_points": ["roles/docker_shared_network/tasks/main.yml"],
+      "key_files": ["roles/docker_shared_network/defaults/main.yml"],
+      "documentation": "roles/docker_shared_network/CLAUDE.md",
+      "dependencies": ["geerlingguy.docker", "community.docker"],
+      "coverage": {
+        "tasks_scanned": true,
+        "defaults_scanned": true,
+        "templates_scanned": false,
+        "tests_scanned": true,
+        "missing_items": []
+      }
+    },
+    {
+      "name": "traefik",
+      "type": "custom_role",
+      "path": "roles/traefik",
+      "language": "yaml",
+      "status": "implemented_not_enabled",
+      "entry_points": ["roles/traefik/tasks/main.yml"],
+      "key_files": [
+        "roles/traefik/defaults/main.yml",
+        "roles/traefik/templates/dynamic.yml.j2"
+      ],
+      "documentation": "roles/traefik/CLAUDE.md",
+      "dependencies": ["docker_shared_network", "community.docker"],
+      "coverage": {
+        "tasks_scanned": true,
+        "defaults_scanned": true,
+        "templates_scanned": true,
+        "tests_scanned": false,
+        "missing_items": ["molecule tests (requires public network)"]
+      }
+    },
+    {
+      "name": "gemi2api",
+      "type": "custom_role",
+      "path": "roles/gemi2api",
+      "language": "yaml",
+      "status": "production",
+      "entry_points": ["roles/gemi2api/tasks/main.yml"],
+      "key_files": ["roles/gemi2api/defaults/main.yml"],
+      "documentation": "roles/gemi2api/CLAUDE.md",
+      "dependencies": ["docker_shared_network", "community.docker"],
+      "coverage": {
+        "tasks_scanned": true,
+        "defaults_scanned": true,
+        "templates_scanned": false,
+        "tests_scanned": false,
+        "missing_items": ["molecule tests (requires valid credentials)"]
+      }
+    },
+    {
+      "name": "geerlingguy.docker",
+      "type": "galaxy_role",
+      "path": "roles/geerlingguy.docker",
+      "language": "yaml",
+      "status": "production",
+      "version": "7.8.0",
+      "documentation": "roles/geerlingguy.docker/README.md",
+      "coverage": {
+        "scanned": false,
+        "reason": "third_party_role",
+        "reference_only": true
+      }
+    },
+    {
+      "name": "geerlingguy.security",
+      "type": "galaxy_role",
+      "path": "roles/geerlingguy.security",
+      "language": "yaml",
+      "status": "production",
+      "version": "3.0.0",
+      "documentation": "roles/geerlingguy.security/README.md",
+      "coverage": {
+        "scanned": false,
+        "reason": "third_party_role",
+        "reference_only": true
+      }
+    },
+    {
+      "name": "geerlingguy.ntp",
+      "type": "galaxy_role",
+      "path": "roles/geerlingguy.ntp",
+      "language": "yaml",
+      "status": "production",
+      "version": "3.0.0",
+      "documentation": "roles/geerlingguy.ntp/README.md",
+      "coverage": {
+        "scanned": false,
+        "reason": "third_party_role",
+        "reference_only": true
+      }
+    },
+    {
+      "name": "prometheus.prometheus",
+      "type": "galaxy_collection",
+      "path": "collections/ansible_collections/prometheus/prometheus",
+      "language": "yaml",
+      "status": "production",
+      "version": "0.27.4",
+      "coverage": {
+        "scanned": false,
+        "reason": "third_party_collection",
+        "reference_only": true
+      }
+    },
+    {
+      "name": "grafana.grafana",
+      "type": "galaxy_collection",
+      "path": "collections/ansible_collections/grafana/grafana",
+      "language": "yaml",
+      "status": "production",
+      "version": "6.0.6",
+      "coverage": {
+        "scanned": false,
+        "reason": "third_party_collection",
+        "reference_only": true
+      }
+    }
+  ],
+  "inventory": {
+    "hosts_file": "inventory/hosts.yml",
+    "hosts": [
+      {
+        "name": "lab-sfo-txy-01",
+        "group": "vps",
+        "roles_enabled": [
+          "geerlingguy.ntp",
+          "geerlingguy.security",
+          "geerlingguy.docker",
+          "docker_shared_network",
+          "traefik",
+          "gemi2api",
+          "prometheus.prometheus.node_exporter",
+          "cloudflared"
+        ],
+        "monitoring_enabled": true,
+        "variables_location": "inventory/host_vars/lab-sfo-txy-01/",
+        "documentation_notes": "监控主机：运行 Prometheus + Alertmanager + Grafana"
+      },
+      {
+        "name": "lab-lax-rnd-01",
+        "group": "vps",
+        "roles_enabled": [
+          "geerlingguy.ntp",
+          "geerlingguy.security",
+          "geerlingguy.docker",
+          "docker_shared_network",
+          "prometheus.prometheus.node_exporter"
+        ],
+        "monitoring_enabled": false,
+        "variables_location": "inventory/host_vars/lab-lax-rnd-01/",
+        "documentation_notes": "标准 VPS：仅运行 Node Exporter"
+      },
+      {
+        "name": "lab-lax-rnd-02",
+        "group": "vps",
+        "roles_enabled": [
+          "geerlingguy.ntp",
+          "geerlingguy.security",
+          "geerlingguy.docker",
+          "docker_shared_network",
+          "prometheus.prometheus.node_exporter"
+        ],
+        "monitoring_enabled": false,
+        "variables_location": "inventory/host_vars/lab-lax-rnd-02/",
+        "documentation_notes": "标准 VPS：仅运行 Node Exporter"
+      }
+    ],
+    "group_vars": [
+      {
+        "group": "all",
+        "file": "inventory/group_vars/all.yml",
+        "key_variables": [
+          "ansible_python_interpreter",
+          "domain_name",
+          "cloudflared_tunnel_domain_name",
+          "node_exporter_*"
+        ]
+      },
+      {
+        "group": "vps",
+        "file": "inventory/group_vars/vps/main.yml",
+        "key_variables": [
+          "docker_*",
+          "firewall_*",
+          "security_*",
+          "ntp_*",
+          "docker_shared_network_*"
+        ]
+      },
+      {
+        "group": "vps",
+        "file": "inventory/group_vars/vps/secrets.yml",
+        "encrypted": true,
+        "key_variables": ["cloudflared_tunnel_credentials_json"]
+      }
+    ]
+  },
+  "playbooks": [
+    {
+      "name": "site.yml",
+      "path": "playbooks/site.yml",
+      "entry_point": true,
+      "target_hosts": "vps",
+      "roles_orchestrated": [
+        "geerlingguy.ntp",
+        "geerlingguy.security",
+        "geerlingguy.docker",
+        "docker_shared_network",
+        "traefik",
+        "gemi2api",
+        "prometheus.prometheus.node_exporter"
+      ],
+      "conditional_roles": [
+        "prometheus.prometheus.prometheus",
+        "prometheus.prometheus.alertmanager",
+        "grafana.grafana.grafana",
+        "cloudflared"
+      ]
+    }
+  ],
+  "testing": {
+    "framework": "molecule",
+    "scenario_path": "molecule/default",
+    "test_platform": "docker",
+    "test_image": "bernylinville/docker-debian13-ansible:latest",
+    "ci_integration": {
+      "platform": "github_actions",
+      "workflow_file": ".github/workflows/gitops.yml",
+      "triggers": ["push to main", "pull_request to main", "workflow_dispatch"]
+    },
+    "coverage": {
+      "verified_roles": [
+        "geerlingguy.security (fail2ban)",
+        "geerlingguy.docker",
+        "docker_shared_network",
+        "prometheus.prometheus.node_exporter"
+      ],
+      "unverified_roles": [
+        "cloudflared (commented out in verify.yml)",
+        "traefik (not enabled in molecule)",
+        "gemi2api (not enabled in molecule)"
+      ]
+    }
+  },
+  "dependencies": {
+    "ansible_version": "11.12.0",
+    "python_version": "3.13+",
+    "galaxy_roles": [
+      {
+        "name": "geerlingguy.docker",
+        "version": "7.8.0",
+        "source": "requirements.yml"
+      },
+      {
+        "name": "geerlingguy.security",
+        "version": "3.0.0",
+        "source": "requirements.yml"
+      },
+      {
+        "name": "geerlingguy.ntp",
+        "version": "3.0.0",
+        "source": "requirements.yml"
+      }
+    ],
+    "galaxy_collections": [
+      {
+        "name": "community.docker",
+        "version": "5.0.2",
+        "source": "collections/requirements.yml"
+      },
+      {
+        "name": "ansible.posix",
+        "version": "2.1.0",
+        "source": "collections/requirements.yml"
+      },
+      {
+        "name": "community.general",
+        "version": "10.1.0",
+        "source": "collections/requirements.yml"
+      },
+      {
+        "name": "prometheus.prometheus",
+        "version": "0.27.4",
+        "source": "collections/requirements.yml"
+      },
+      {
+        "name": "grafana.grafana",
+        "version": "6.0.6",
+        "source": "collections/requirements.yml"
+      }
+    ],
+    "python_packages": [
+      "ansible-lint==25.11.1",
+      "docker==7.1.0",
+      "molecule==25.11.1",
+      "molecule-plugins==25.8.12",
+      "passlib==1.7.4",
+      "bcrypt==4.1.2"
+    ]
+  },
+  "configuration_files": {
+    "ansible_cfg": "ansible.cfg",
+    "requirements_yml": "requirements.yml",
+    "collections_requirements_yml": "collections/requirements.yml",
+    "python_requirements_txt": "requirements.txt",
+    "ansible_lint": ".ansible-lint",
+    "gitignore": ".gitignore"
+  },
+  "documentation": {
+    "root_claude_md": "CLAUDE.md",
+    "memory_bank": [
+      "memory-bank/architecture.md",
+      "memory-bank/product-requirements-document.md",
+      "memory-bank/tech-stack.md",
+      "memory-bank/molecule-tests.md",
+      "memory-bank/implementation-plan.md",
+      "memory-bank/progress.md"
+    ],
+    "readme": "README.md"
+  },
+  "ignored_patterns": [
+    ".ansible/**",
+    ".venv/**",
+    ".git/**",
+    ".github/**",
+    "roles/geerlingguy.*/**",
+    ".vault-password",
+    ".sudo-password",
+    "cloudflare-tunnel.json",
+    ".DS_Store"
+  ],
+  "scan_gaps": {
+    "truncated": false,
+    "recommended_next_steps": [],
+    "missing_coverage_areas": [
+      "molecule tests for cloudflared (disabled due to public network requirement)",
+      "molecule tests for traefik (disabled due to DNS requirement)",
+      "molecule tests for gemi2api (disabled due to credential requirement)",
+      "detailed prometheus/alertmanager/grafana configuration validation"
+    ]
+  },
+  "coverage_report": {
+    "custom_roles": {
+      "total": 4,
+      "documented": 4,
+      "tested": 1,
+      "coverage_percentage": 100
+    },
+    "galaxy_dependencies": {
+      "total": 7,
+      "version_locked": 7,
+      "coverage_percentage": 100
+    },
+    "inventory": {
+      "hosts_documented": 3,
+      "group_vars_scanned": 2,
+      "coverage_percentage": 100
+    },
+    "overall_coverage_percentage": 95,
+    "areas_of_concern": [
+      "traefik role implemented but not enabled in production (using cloudflared instead)",
+      "firewall role (geerlingguy.firewall) disabled due to Docker compatibility issues"
+    ]
+  },
+  "ai_usage_recommendations": [
+    "优先阅读 CLAUDE.md (根文档) 了解全局架构",
+    "变更自定义角色时参考各角色的 CLAUDE.md",
+    "新增主机时复制 inventory/host_vars/lab-sfo-txy-01/ 作为模板",
+    "使用 molecule converge 快速验证变更",
+    "所有敏感变量必须通过 ansible-vault 加密",
+    "遵循 Conventional Commits 规范提交代码"
+  ]
+}

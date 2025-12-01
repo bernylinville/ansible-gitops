@@ -8,7 +8,7 @@ traefik_state: started
 traefik_restart_policy: unless-stopped
 traefik_network_name: "{{ docker_shared_network_name }}"
 traefik_networks:
-    - name: "{{ traefik_network_name }}"
+  - name: "{{ traefik_network_name }}"
 traefik_networks_cli_compatible: true
 traefik_bind_http_host: 0.0.0.0
 traefik_bind_http_port: 80
@@ -17,9 +17,9 @@ traefik_bind_https_port: 443
 traefik_container_http_port: 80
 traefik_container_https_port: 443
 traefik_published_ports:
-    - "{{ traefik_bind_http_host }}:{{ traefik_bind_http_port }}:{{ traefik_container_http_port }}"
-    - "{{ traefik_bind_https_host }}:{{ traefik_bind_https_port }}:{{ traefik_container_https_port }}"
-    # - "{{ traefik_bind_https_host }}:{{ traefik_bind_https_port }}:{{ traefik_container_https_port }}/udp"
+  - "{{ traefik_bind_http_host }}:{{ traefik_bind_http_port }}:{{ traefik_container_http_port }}"
+  - "{{ traefik_bind_https_host }}:{{ traefik_bind_https_port }}:{{ traefik_container_https_port }}"
+  # - "{{ traefik_bind_https_host }}:{{ traefik_bind_https_port }}:{{ traefik_container_https_port }}/udp"
 traefik_data_directory: /opt/traefik
 traefik_letsencrypt_directory: "{{ traefik_data_directory }}/letsencrypt"
 traefik_acme_storage_host_path: "{{ traefik_letsencrypt_directory }}/acme.json"
@@ -30,7 +30,7 @@ traefik_data_dir_mode: "0755"
 traefik_acme_file_mode: "0600"
 traefik_timezone: "{{ ntp_timezone | default('UTC', true) }}"
 traefik_env_defaults:
-    TZ: "{{ traefik_timezone }}"
+  TZ: "{{ traefik_timezone }}"
 traefik_env_overrides: {}
 traefik_docker_socket_path: /var/run/docker.sock
 traefik_compression_enabled: false
@@ -46,25 +46,25 @@ traefik_file_provider_filepath: "{{ traefik_file_provider_directory }}/{{ traefi
 traefik_file_provider_mount_path: /dynamic
 traefik_file_provider_config: {}
 traefik_file_provider_command_flags:
-    - "--providers.file.directory={{ traefik_file_provider_mount_path }}"
-    - "--providers.file.watch=true"
+  - "--providers.file.directory={{ traefik_file_provider_mount_path }}"
+  - "--providers.file.watch=true"
 traefik_volumes_required:
-    - "{{ traefik_letsencrypt_directory }}:/letsencrypt:rw"
-    - "{{ traefik_docker_socket_path }}:{{ traefik_docker_socket_path }}:ro"
+  - "{{ traefik_letsencrypt_directory }}:/letsencrypt:rw"
+  - "{{ traefik_docker_socket_path }}:{{ traefik_docker_socket_path }}:ro"
 traefik_file_provider_volume_mapping: "{{ traefik_file_provider_directory }}:{{ traefik_file_provider_mount_path }}:ro"
 traefik_file_provider_volumes: "{{ [traefik_file_provider_volume_mapping] if traefik_file_provider_enabled | bool else [] }}"
 traefik_additional_volumes: []
 traefik_volumes: "{{ traefik_volumes_required + traefik_file_provider_volumes + traefik_additional_volumes }}"
 traefik_log_driver: json-file
 traefik_log_options:
-    max-size: "1m"
+  max-size: "1m"
 traefik_healthcheck:
-    test:
-        - CMD-SHELL
-        - "wget -q --spider http://127.0.0.1:8080/ping || exit 1"
-    interval: 10s
-    timeout: 3s
-    retries: 10
+  test:
+    - CMD-SHELL
+    - "wget -q --spider http://127.0.0.1:8080/ping || exit 1"
+  interval: 10s
+  timeout: 3s
+  retries: 10
 traefik_acme_resolver_name: myresolver
 traefik_dns_challenge_provider: cloudflare
 traefik_acme_email: ""
@@ -74,62 +74,62 @@ traefik_metrics_enabled: true
 traefik_dashboard_domain: "traefik.{{ domain_name | default('example.com', true) }}"
 traefik_whoami_domain: "whoami.{{ domain_name | default('example.com', true) }}"
 traefik_command_flags_defaults:
-    - "--global.sendanonymoususage=false"
-    - "--global.checknewversion=false"
-    - "--api=true"
-    - "--api.dashboard=true"
-    - "--api.insecure=true"
-    - "--api.debug=false"
-    - "--ping=true"
-    - "--log.level={{ traefik_log_level }}"
-    - "--log.format=common"
-    - "--providers.docker=true"
-    - "--providers.docker.endpoint=unix://{{ traefik_docker_socket_path }}"
-    - "--providers.docker.exposedbydefault=false"
-    - "--providers.docker.network={{ traefik_network_name }}"
-    - "--entrypoints.web.address=:{{ traefik_container_http_port }}"
-    - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-    - "--entrypoints.websecure.address=:{{ traefik_container_https_port }}"
-    # - "--entrypoints.websecure.http3"
-    - "--entrypoints.websecure.http.tls.certresolver={{ traefik_acme_resolver_name }}"
-    - "--certificatesresolvers.{{ traefik_acme_resolver_name }}.acme.dnschallenge=true"
-    - "--certificatesresolvers.{{ traefik_acme_resolver_name }}.acme.dnschallenge.provider={{ traefik_dns_challenge_provider }}"
-    - "--certificatesresolvers.{{ traefik_acme_resolver_name }}.acme.caserver={{ traefik_acme_ca_server }}"
-    - "--certificatesresolvers.{{ traefik_acme_resolver_name }}.acme.email={{ traefik_acme_email }}"
-    - "--certificatesresolvers.{{ traefik_acme_resolver_name }}.acme.storage={{ traefik_acme_storage_container_path }}"
-    - "--metrics.prometheus={{ 'true' if traefik_metrics_enabled | bool else 'false' }}"
+  - "--global.sendanonymoususage=false"
+  - "--global.checknewversion=false"
+  - "--api=true"
+  - "--api.dashboard=true"
+  - "--api.insecure=true"
+  - "--api.debug=false"
+  - "--ping=true"
+  - "--log.level={{ traefik_log_level }}"
+  - "--log.format=common"
+  - "--providers.docker=true"
+  - "--providers.docker.endpoint=unix://{{ traefik_docker_socket_path }}"
+  - "--providers.docker.exposedbydefault=false"
+  - "--providers.docker.network={{ traefik_network_name }}"
+  - "--entrypoints.web.address=:{{ traefik_container_http_port }}"
+  - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+  - "--entrypoints.websecure.address=:{{ traefik_container_https_port }}"
+  # - "--entrypoints.websecure.http3"
+  - "--entrypoints.websecure.http.tls.certresolver={{ traefik_acme_resolver_name }}"
+  - "--certificatesresolvers.{{ traefik_acme_resolver_name }}.acme.dnschallenge=true"
+  - "--certificatesresolvers.{{ traefik_acme_resolver_name }}.acme.dnschallenge.provider={{ traefik_dns_challenge_provider }}"
+  - "--certificatesresolvers.{{ traefik_acme_resolver_name }}.acme.caserver={{ traefik_acme_ca_server }}"
+  - "--certificatesresolvers.{{ traefik_acme_resolver_name }}.acme.email={{ traefik_acme_email }}"
+  - "--certificatesresolvers.{{ traefik_acme_resolver_name }}.acme.storage={{ traefik_acme_storage_container_path }}"
+  - "--metrics.prometheus={{ 'true' if traefik_metrics_enabled | bool else 'false' }}"
 traefik_additional_command_flags: []
 traefik_command_flags: "{{ traefik_command_flags_defaults
-    + (traefik_file_provider_command_flags if traefik_file_provider_enabled | bool else [])
-    + traefik_additional_command_flags }}"
+  + (traefik_file_provider_command_flags if traefik_file_provider_enabled | bool else [])
+  + traefik_additional_command_flags }}"
 traefik_labels_defaults_base:
-    traefik.enable: "true"
-    traefik.docker.network: "{{ traefik_network_name }}"
-    traefik.http.routers.traefik-dashboard-secure.rule: 'Host("{{ traefik_dashboard_domain }}")'
-    traefik.http.routers.traefik-dashboard-secure.entrypoints: "websecure"
-    traefik.http.routers.traefik-dashboard-secure.tls.certresolver: "{{ traefik_acme_resolver_name }}"
-    traefik.http.routers.traefik-dashboard-secure.service: "dashboard@internal"
-    traefik.http.routers.traefik-dashboard-api-secure.rule: 'Host("{{ traefik_dashboard_domain }}") && PathPrefix("/api")'
-    traefik.http.routers.traefik-dashboard-api-secure.entrypoints: "websecure"
-    traefik.http.routers.traefik-dashboard-api-secure.tls.certresolver: "{{ traefik_acme_resolver_name }}"
-    traefik.http.routers.traefik-dashboard-api-secure.service: "api@internal"
+  traefik.enable: "true"
+  traefik.docker.network: "{{ traefik_network_name }}"
+  traefik.http.routers.traefik-dashboard-secure.rule: 'Host("{{ traefik_dashboard_domain }}")'
+  traefik.http.routers.traefik-dashboard-secure.entrypoints: "websecure"
+  traefik.http.routers.traefik-dashboard-secure.tls.certresolver: "{{ traefik_acme_resolver_name }}"
+  traefik.http.routers.traefik-dashboard-secure.service: "dashboard@internal"
+  traefik.http.routers.traefik-dashboard-api-secure.rule: 'Host("{{ traefik_dashboard_domain }}") && PathPrefix("/api")'
+  traefik.http.routers.traefik-dashboard-api-secure.entrypoints: "websecure"
+  traefik.http.routers.traefik-dashboard-api-secure.tls.certresolver: "{{ traefik_acme_resolver_name }}"
+  traefik.http.routers.traefik-dashboard-api-secure.service: "api@internal"
 traefik_compression_labels_defaults: "{{ {('traefik.http.middlewares.' + traefik_compression_middleware_name + '.compression'): 'true'} if traefik_compression_enabled | bool else {} }}"
 traefik_router_middlewares_labels_defaults: "{{ {} if not traefik_default_middlewares_joined else {'traefik.http.routers.traefik-dashboard-secure.middlewares': traefik_default_middlewares_joined, 'traefik.http.routers.traefik-dashboard-api-secure.middlewares': traefik_default_middlewares_joined} }}"
 traefik_labels_defaults: "{{ traefik_labels_defaults_base
-    | combine(traefik_compression_labels_defaults, recursive=True)
-    | combine(traefik_router_middlewares_labels_defaults, recursive=True) }}"
+  | combine(traefik_compression_labels_defaults, recursive=True)
+  | combine(traefik_router_middlewares_labels_defaults, recursive=True) }}"
 traefik_labels_overrides: {}
 traefik_whoami_enabled: false
 traefik_whoami_image: traefik/whoami
 traefik_whoami_image_tag: v1.11.0
 traefik_whoami_container_name: traefik-whoami
 traefik_whoami_labels_defaults_base:
-    traefik.enable: "true"
-    traefik.http.routers.whoami.rule: 'Host("{{ traefik_whoami_domain }}")'
-    traefik.http.routers.whoami.entrypoints: "websecure"
-    traefik.http.routers.whoami.tls.certresolver: "{{ traefik_acme_resolver_name }}"
-    traefik.http.services.whoami.loadbalancer.server.port: "80"
+  traefik.enable: "true"
+  traefik.http.routers.whoami.rule: 'Host("{{ traefik_whoami_domain }}")'
+  traefik.http.routers.whoami.entrypoints: "websecure"
+  traefik.http.routers.whoami.tls.certresolver: "{{ traefik_acme_resolver_name }}"
+  traefik.http.services.whoami.loadbalancer.server.port: "80"
 traefik_whoami_middlewares_labels_defaults: "{{ {} if not traefik_whoami_middlewares_joined else {'traefik.http.routers.whoami.middlewares': traefik_whoami_middlewares_joined} }}"
 traefik_whoami_labels_defaults: "{{ traefik_whoami_labels_defaults_base
-    | combine(traefik_whoami_middlewares_labels_defaults, recursive=True) }}"
+  | combine(traefik_whoami_middlewares_labels_defaults, recursive=True) }}"
 traefik_whoami_labels_overrides: {}

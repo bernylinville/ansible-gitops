@@ -12,22 +12,25 @@ traefik_whoami_enabled: true
 traefik_compression_enabled: true
 traefik_file_provider_enabled: true
 traefik_file_provider_config:
-    http:
-        routers:
-            gemi2api:
-                rule: 'Host("gemi2api.{{ domain_name }}")'
-                entryPoints:
-                    - websecure
-                tls:
-                    certResolver: "{{ traefik_acme_resolver_name }}"
-                service: gemi2api
-                middlewares:
-                    - "{{ traefik_compression_middleware_name }}@docker"
-        services:
-            gemi2api:
-                loadBalancer:
-                    servers:
-                        - url: "http://{{ hostvars['lab-sfo-txy-01'].tailscale_ip }}:8000"
+  http:
+    middlewares:
+      http-compression:
+        compress: {}
+    routers:
+      gemi2api:
+        rule: 'Host("gemi2api.{{ domain_name }}")'
+        entryPoints:
+          - websecure
+        tls:
+          certResolver: "{{ traefik_acme_resolver_name }}"
+        service: gemi2api
+        middlewares:
+          - http-compression
+    services:
+      gemi2api:
+        loadBalancer:
+          servers:
+            - url: "http://{{ hostvars['lab-sfo-txy-01'].tailscale_ip }}:8000"
 traefik_env_overrides:
-    # Cloudflare DNS challenge now uses scoped API Tokens.
-    CF_DNS_API_TOKEN: "{{ traefik_cloudflare_api_key | default('', true) }}"
+  # Cloudflare DNS challenge now uses scoped API Tokens.
+  CF_DNS_API_TOKEN: "{{ traefik_cloudflare_api_key | default('', true) }}"

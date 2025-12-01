@@ -25,6 +25,15 @@
         name: "{{ inventory_hostname }}"
       become: true
 
+    - name: Ensure hostname resolves in /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: '^127\.0\.1\.1\s+'
+        line: "127.0.1.1 {{ inventory_hostname }}"
+        insertafter: '^127\.0\.0\.1.*'
+        state: present
+      become: true
+
   roles:
     - role: geerlingguy.ntp
       become: true

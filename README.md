@@ -107,7 +107,7 @@ Ansible GitOps 旨在以声明式、可审计的方式管理个人 VPS 与 Homel
 
 ### Prerequisites
 
-- Python 3.11+ 与 `pip`
+- Python 3.13+ 与 `pip`
 - `python3-venv`（Linux 下创建虚拟环境）
 - 具备访问目标主机的 SSH Key（默认为 `~/.ssh/id_ed25519`，可通过 `ANSIBLE_SSH_KEY_PATH` 覆盖）
 - Cloudflare Tunnel 凭据 JSON 与 Vault 密码（用于加密 `inventory/**/secrets.yml`）
