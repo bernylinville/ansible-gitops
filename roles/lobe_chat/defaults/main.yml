@@ -60,6 +60,8 @@ lobe_chat_s3_enable_path_style: "0"
 lobe_chat_clerk_publishable_key: ""
 lobe_chat_clerk_secret_key: ""
 lobe_chat_clerk_webhook_secret: ""
+lobe_chat_search_providers: ""
+lobe_chat_searxng_url: ""
 
 lobe_chat_env_defaults:
   APP_URL: "{{ lobe_chat_app_url }}"
@@ -76,6 +78,8 @@ lobe_chat_env_defaults:
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "{{ lobe_chat_clerk_publishable_key }}"
   CLERK_SECRET_KEY: "{{ lobe_chat_clerk_secret_key }}"
   CLERK_WEBHOOK_SECRET: "{{ lobe_chat_clerk_webhook_secret }}"
+  SEARCH_PROVIDERS: "{{ lobe_chat_search_providers }}"
+  SEARXNG_URL: "{{ lobe_chat_searxng_url }}"
 
 lobe_chat_env_overrides: {}
 

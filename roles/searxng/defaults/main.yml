@@ -42,13 +42,13 @@ searxng_labels_defaults:
   traefik.enable: >-
     {{ 'true' if searxng_traefik_enabled | bool else 'false' }}
   traefik.docker.network: "{{ searxng_network_name }}"
-  traefik.http.routers.{{ searxng_traefik_router_name }}.rule: >-
+  traefik.http.routers.searxng.rule: >-
     Host("{{ searxng_domain }}")
-  traefik.http.routers.{{ searxng_traefik_router_name }}.entrypoints: >-
+  traefik.http.routers.searxng.entrypoints: >-
     {{ searxng_traefik_entrypoint }}
-  traefik.http.routers.{{ searxng_traefik_router_name }}.tls.certresolver: >-
+  traefik.http.routers.searxng.tls.certresolver: >-
     {{ searxng_traefik_cert_resolver }}
-  traefik.http.services.{{ searxng_traefik_router_name }}.loadbalancer.server.port: >-
+  traefik.http.services.searxng.loadbalancer.server.port: >-
     {{ searxng_container_port }}
 
 searxng_labels_overrides: {}

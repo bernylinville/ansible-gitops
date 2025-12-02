@@ -10,15 +10,15 @@
 
 **核心功能**：
 1. 部署 SearXNG 容器
-2. 渲染自定义配置文件（settings.yml）
-3. 通过 Traefik 提供 HTTPS 访问（无需暴露端口）
-4. 可选启用 Prometheus 指标
+2. 容器自动生成配置文件（settings.yml）
+3. 提供内部网络访问（仅 Docker 网络内可访问）
+4. 可选通过 Traefik 提供外部 HTTPS 访问
 5. 配置持久化（仅配置文件）
 
 **使用场景**：
+- **LobeChat LLM 联网搜索**（推荐：内部服务模式）
 - 私有化搜索引擎部署
 - 隐私保护的搜索服务
-- 聚合多个搜索引擎结果
 - 企业内部搜索工具
 
 ---
@@ -33,16 +33,17 @@
 1. **创建配置目录**
    - `/opt/searxng/config/` - 配置文件存储
 
-2. **渲染配置文件**
-   - 使用 `templates/settings.yml.j2` 模板
-   - 配置实例名称、密钥、搜索引擎等
-   - 注册配置变更（触发容器重建）
-
-3. **部署 SearXNG 容器**
+2. **部署 SearXNG 容器**
    - 拉取 `docker.io/searxng/searxng` 镜像
-   - 挂载配置目录（只读）
+   - 挂载配置目录（读写模式，允许容器生成默认配置）
+   - 通过环境变量注入关键配置（Base URL、Secret Key）
    - 仅加入 `proxy_net` 网络（不暴露端口）
    - 添加 Traefik 路由标签
+
+3. **容器首次启动自动配置**
+   - SearXNG 容器检测到 `/etc/searxng/settings.yml` 不存在时自动生成
+   - 使用内置模板创建完整的配置文件
+   - 从环境变量读取 `SEARXNG_BASE_URL` 和 `SEARXNG_SECRET`
 
 4. **Traefik 自动配置**
    - 通过 Docker Provider 自动发现服务
@@ -162,39 +163,28 @@ traefik.http.services.searxng.loadbalancer.server.port: "8080"
 
 ### 配置文件结构
 
+**配置方式**: 容器自动生成 + 环境变量覆盖
+
+SearXNG 容器在首次启动时会自动生成完整的 `settings.yml`，包含所有默认配置。角色通过以下环境变量控制关键配置：
+
+- `SEARXNG_BASE_URL`: 外部访问 URL
+- `SEARXNG_SECRET`: 会话加密密钥
+
 ```yaml
-# /opt/searxng/config/settings.yml
-general:
-  instance_name: "DevOpsThink Search"
-  contact_url: "mailto:admin@devopsthink.org"
-  enable_metrics: true
+# /opt/searxng/config/settings.yml (容器自动生成)
+# 该文件由 SearXNG 容器在首次启动时自动创建
+# 包含完整的默认配置，符合 SearXNG 的配置 schema
+# 环境变量会覆盖相应的配置项
 
-server:
-  secret_key: "<SECRET_KEY>"
-  base_url: "https://searxng.devopsthink.org"
-  bind_address: "0.0.0.0"
-  port: 8080
-
-search:
-  autocomplete: "google"
-  default_lang: "auto"
-
-ui:
-  default_theme: simple
-  theme_args:
-    simple_style: auto
-
-engines:
-  - name: google
-    disabled: false
-  - name: bing
-    disabled: false
-  - name: duckduckgo
-    disabled: false
-  - name: wikipedia
-    disabled: false
-  - name: github
-    disabled: false
+# 主要配置项示例：
+# general:
+#   instance_name: "SearXNG"
+#   enable_metrics: true
+# server:
+#   secret_key: "<从环境变量读取>"
+#   base_url: "<从环境变量读取>"
+#   bind_address: "0.0.0.0"
+#   port: 8080
 ```
 
 ### 目录结构
@@ -202,7 +192,7 @@ engines:
 ```
 /opt/searxng/
 └── config/
-    └── settings.yml        # 配置文件（只读挂载）
+    └── settings.yml        # 配置文件（容器自动生成，读写挂载）
 ```
 
 ### 容器网络架构
@@ -290,7 +280,13 @@ searxng_secret_key: "3c0f7e95d8a9b6e4f2a1c8d7e9b4f6a3e2c1d9b8a7f6e5d4c3b2a1f0e9d
 
 ### Q2: 如何添加自定义搜索引擎？
 
-**A**: 编辑配置模板 `roles/searxng/templates/settings.yml.j2`：
+**A**: 容器首次启动后会在 `/opt/searxng/config/settings.yml` 生成完整配置文件。可以手动编辑该文件：
+
+```bash
+# 在目标主机上编辑配置
+ssh lab-lax-rnd-02
+sudo vim /opt/searxng/config/settings.yml
+```
 
 ```yaml
 engines:
@@ -304,12 +300,51 @@ engines:
     disabled: false  # 新增
 ```
 
-重新部署：
+重启容器使配置生效：
 ```bash
-ansible-playbook -i inventory/hosts.yml playbooks/site.yml --limit lab-lax-rnd-02
+docker restart searxng
 ```
 
-### Q3: 为什么不暴露端口？
+### Q3: 如何配置内部服务模式（仅供 LobeChat 使用）？
+
+**A**: 设置 `searxng_traefik_enabled: false` 禁用外部访问：
+
+```yaml
+# inventory/host_vars/lab-lax-rnd-02/main.yml
+searxng_enable: true
+searxng_traefik_enabled: false  # 禁用 Traefik 路由
+```
+
+这样 SearXNG 仅在 `proxy_net` Docker 网络内可访问，其他容器（如 LobeChat）可以通过 `http://searxng:8080` 访问，但外部无法直接访问。
+
+**LobeChat 集成配置**：
+```yaml
+# inventory/host_vars/lab-lax-rnd-02/main.yml
+lobe_chat_search_providers: "searxng"
+lobe_chat_searxng_url: "http://searxng:8080"
+```
+
+验证内部连通性：
+```bash
+# 在 proxy_net 网络中测试
+docker run --rm --network proxy_net curlimages/curl:latest \
+  curl -s http://searxng:8080/
+```
+
+### Q4: 如何启用外部访问（通过 Traefik）？
+
+**A**: 设置 `searxng_traefik_enabled: true` 并配置域名：
+
+```yaml
+# inventory/host_vars/lab-lax-rnd-02/main.yml
+searxng_enable: true
+searxng_traefik_enabled: true  # 启用 Traefik 路由
+searxng_domain: "searxng.{{ domain_name }}"
+```
+
+重新部署后可通过 `https://searxng.devopsthink.org` 访问。
+
+### Q5: 为什么不暴露端口？
 
 **A**:
 - **安全性**: 通过 Traefik 统一管理 HTTPS 和认证
@@ -324,21 +359,21 @@ searxng_env_overrides:
     - "127.0.0.1:8080:8080"  # 仅本地访问
 ```
 
-### Q4: 如何查看搜索统计？
+### Q6: 如何查看搜索统计？
 
 **A**:
 
 访问 `/stats` 端点（需启用 `searxng_enable_metrics: true`）：
 ```bash
+# 内部服务模式
+docker run --rm --network proxy_net curlimages/curl:latest \
+  curl -s http://searxng:8080/stats
+
+# 外部访问模式
 curl https://searxng.devopsthink.org/stats
 ```
 
-或在 Web 界面中访问：
-```
-https://searxng.devopsthink.org/stats
-```
-
-### Q5: 如何升级 SearXNG 版本？
+### Q7: 如何升级 SearXNG 版本？
 
 **A**:
 
@@ -410,8 +445,6 @@ roles/searxng/
 │   └── main.yml              # 默认变量定义
 ├── tasks/
 │   └── main.yml              # 主任务流程
-├── templates/
-│   └── settings.yml.j2       # 配置模板
 └── CLAUDE.md                 # 本文档
 
 inventory/host_vars/lab-lax-rnd-02/
@@ -424,13 +457,24 @@ inventory/host_vars/lab-lax-rnd-02/
 ## 变更记录 (Changelog)
 
 ### 2025-12-02
+
+#### 初始化 (10:00 UTC)
 - **初始化**: 创建 searxng 角色
-- **版本**: 2025.8.1-3d96414
+- **版本**: 2025.12.1-ab8224c93
 - **特性**:
-  - 自定义配置模板（Jinja2）
+  - 环境变量配置（SEARXNG_BASE_URL、SEARXNG_SECRET）
+  - 容器自动生成配置文件（首次启动）
   - Traefik HTTPS 路由（Docker Provider）
   - 配置持久化（不持久化缓存）
   - Prometheus 指标支持
+- **修复**: 移除自定义配置模板，采用容器自动生成方式以确保配置 schema 兼容性
+
+#### 内部服务模式配置 (15:30 UTC)
+- **配置变更**: 禁用 Traefik 对外访问（`searxng_traefik_enabled: false`）
+- **使用场景**: 作为 LobeChat LLM 联网搜索内部服务
+- **网络访问**: 仅 `proxy_net` Docker 网络内可访问（`http://searxng:8080`）
+- **安全增强**: 外部无法直接访问，降低安全风险
+- **集成**: 与 LobeChat 集成配置（`lobe_chat_search_providers: "searxng"`）
 - **测试覆盖**: 未集成到 Molecule 测试
 - **部署主机**: lab-lax-rnd-02
 
