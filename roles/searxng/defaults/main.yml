@@ -1,0 +1,54 @@
+---
+# SearXNG 角色默认变量
+
+# ========== 全局配置 ==========
+searxng_enable: false
+searxng_data_directory: /opt/searxng
+searxng_config_directory: "{{ searxng_data_directory }}/config"
+searxng_network_name: "{{ docker_custom_network_name }}"
+searxng_restart_policy: unless-stopped
+searxng_state: started
+searxng_pull: true
+
+# ========== 容器配置 ==========
+searxng_image: docker.io/searxng/searxng
+searxng_image_tag: latest
+searxng_container_name: searxng
+searxng_container_port: 8080
+
+# ========== 应用配置 ==========
+searxng_domain: "searxng.{{ domain_name | default('example.com', true) }}"
+searxng_base_url: "https://{{ searxng_domain }}"
+searxng_secret_key: ""  # 必须通过 secrets.yml 覆盖
+searxng_instance_name: "SearXNG"
+searxng_contact_url: ""
+searxng_enable_metrics: true
+searxng_autocomplete: "google"
+
+# ========== 环境变量 ==========
+searxng_env_defaults:
+  SEARXNG_BASE_URL: "{{ searxng_base_url }}"
+  SEARXNG_SECRET: "{{ searxng_secret_key }}"
+searxng_env_overrides: {}
+
+# ========== Traefik 集成配置 ==========
+searxng_traefik_enabled: true
+searxng_traefik_router_name: searxng
+searxng_traefik_entrypoint: websecure
+searxng_traefik_cert_resolver: >-
+  {{ traefik_acme_resolver_name | default('myresolver', true) }}
+
+searxng_labels_defaults:
+  traefik.enable: >-
+    {{ 'true' if searxng_traefik_enabled | bool else 'false' }}
+  traefik.docker.network: "{{ searxng_network_name }}"
+  traefik.http.routers.{{ searxng_traefik_router_name }}.rule: >-
+    Host("{{ searxng_domain }}")
+  traefik.http.routers.{{ searxng_traefik_router_name }}.entrypoints: >-
+    {{ searxng_traefik_entrypoint }}
+  traefik.http.routers.{{ searxng_traefik_router_name }}.tls.certresolver: >-
+    {{ searxng_traefik_cert_resolver }}
+  traefik.http.services.{{ searxng_traefik_router_name }}.loadbalancer.server.port: >-
+    {{ searxng_container_port }}
+
+searxng_labels_overrides: {}

@@ -49,6 +49,7 @@
     - role: lobe_chat
     - role: axonhub
     - role: new_api
+    - role: searxng
     - role: prometheus.prometheus.node_exporter
       become: true
     # - role: prometheus.prometheus.prometheus

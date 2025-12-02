@@ -1,0 +1,60 @@
+---
+# SearXNG 部署任务
+
+# ========== 启用时的任务 ==========
+- name: 创建 SearXNG 配置目录
+  when: searxng_enable | bool
+  become: true
+  ansible.builtin.file:
+    path: "{{ searxng_config_directory }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+
+- name: 渲染 SearXNG 配置文件
+  when: searxng_enable | bool
+  become: true
+  ansible.builtin.template:
+    src: settings.yml.j2
+    dest: "{{ searxng_config_directory }}/settings.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  register: searxng_config_changed
+
+- name: 拉取 SearXNG 镜像
+  when: searxng_enable | bool and searxng_pull | bool
+  community.docker.docker_image:
+    name: "{{ searxng_image }}:{{ searxng_image_tag }}"
+    source: pull
+    force_source: true
+
+- name: 部署 SearXNG 容器
+  when: searxng_enable | bool
+  community.docker.docker_container:
+    name: "{{ searxng_container_name }}"
+    image: "{{ searxng_image }}:{{ searxng_image_tag }}"
+    pull: false
+    restart_policy: "{{ searxng_restart_policy }}"
+    state: "{{ searxng_state }}"
+    env: >-
+      {{ searxng_env_defaults |
+         combine(searxng_env_overrides, recursive=True) }}
+    volumes:
+      - "{{ searxng_config_directory }}:/etc/searxng:ro"
+    networks:
+      - name: "{{ searxng_network_name }}"
+    networks_cli_compatible: true
+    labels: >-
+      {{ searxng_labels_defaults |
+         combine(searxng_labels_overrides, recursive=True) }}
+    recreate: "{{ searxng_config_changed.changed | default(false) }}"
+
+# ========== 禁用时的清理任务 ==========
+- name: 删除已禁用的 SearXNG 容器
+  when: not searxng_enable | bool
+  community.docker.docker_container:
+    name: "{{ searxng_container_name }}"
+    state: absent
+    force_kill: true
