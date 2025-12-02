@@ -1,7 +1,7 @@
 ---
 cloudflared_enabled: true
 gemi2api_enable: true
-gemi2api_image_tag: v1.17.1
+gemi2api_image_tag: v1.17.2
 gemi2api_bind_address: "{{ tailscale_ip }}"
 # Fix Docker networking issues with UFW
 firewall_forward_policy: ACCEPT
