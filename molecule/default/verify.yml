@@ -58,37 +58,6 @@
           - compose_version.rc == 0
         fail_msg: "Docker Compose is not installed"
 
-    - name: Gather node_exporter service facts
-      ansible.builtin.service_facts:
-
-    - name: Assert node_exporter service is active
-      ansible.builtin.assert:
-        that:
-          - "'node_exporter.service' in ansible_facts.services"
-          - ansible_facts.services['node_exporter.service'].state == 'running'
-        fail_msg: "node_exporter service is not running"
-
-    - name: Check node_exporter port
-      ansible.builtin.wait_for:
-        port: 9100
-        state: started
-        timeout: 5
-
-    - name: Query node_exporter metrics
-      ansible.builtin.uri:
-        url: "http://127.0.0.1:9100/metrics"
-        method: GET
-        status_code: 200
-        timeout: 5
-      register: node_exporter_metrics
-      changed_when: false
-
-    - name: Assert node_exporter metrics are reachable
-      ansible.builtin.assert:
-        that:
-          - node_exporter_metrics.status == 200
-        fail_msg: "node_exporter metrics endpoint is unreachable"
-
     - name: Inspect shared proxy network
       community.docker.docker_network_info:
         name: "{{ docker_custom_network_name }}"

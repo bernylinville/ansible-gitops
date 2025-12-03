@@ -8,37 +8,5 @@ domain_name: devopsthink.org
 nas_tailscale_ip: 100.80.43.37
 
 cloudflared_tunnel_domain_name: "{{ domain_name }}"
-node_exporter_version: "1.9.1"
-node_exporter_listen_host: "0.0.0.0"
-node_exporter_listen_port: 9100
-node_exporter_web_listen_address: "{{ node_exporter_listen_host }}:{{ node_exporter_listen_port }}"
-node_exporter_web_disable_exporter_metrics: false
-node_exporter_web_telemetry_path: "/metrics"
-node_exporter_textfile_dir: "/var/lib/node_exporter"
-node_exporter_enabled_collectors:
-  - systemd
-  - textfile:
-      directory: "{{ node_exporter_textfile_dir }}"
-node_exporter_disabled_collectors: []
-node_exporter_tls_server_config: {}
-node_exporter_http_server_config: {}
-node_exporter_basic_auth_users: {}
-node_exporter_binary_install_dir: "/usr/local/bin"
-node_exporter_system_group: "node-exp"
-node_exporter_system_user: "{{ node_exporter_system_group }}"
-node_exporter_config_dir: "/etc/node_exporter"
-prometheus_node_exporter_address: >-
-  {{ hostvars[inventory_hostname].prometheus_node_exporter_bind_address
-     | default(
-         ansible_host
-         | default(
-             (ansible_default_ipv4['address']
-              if (ansible_default_ipv4 is defined and 'address' in ansible_default_ipv4)
-              else ''),
-             true
-           ),
-         true
-       )
-     | default(inventory_hostname, true)
-  }}
-prometheus_node_exporter_target: "{{ prometheus_node_exporter_address }}:{{ node_exporter_listen_port }}"
+
+beszel_agent_hub_host: "{{ nas_tailscale_ip }}"

@@ -1,0 +1,36 @@
+---
+- name: 创建 Beszel Agent 数据目录
+  when: beszel_agent_enable | bool
+  become: true
+  ansible.builtin.file:
+    path: "{{ beszel_agent_data_directory }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: 部署 Beszel Agent 容器
+  when: beszel_agent_enable | bool
+  community.docker.docker_container:
+    name: "{{ beszel_agent_container_name }}"
+    image: "{{ beszel_agent_image }}:{{ beszel_agent_image_tag }}"
+    pull: "{{ 'always' if beszel_agent_pull | bool else 'missing' }}"
+    restart_policy: "{{ beszel_agent_restart_policy }}"
+    state: "{{ beszel_agent_state }}"
+    network_mode: "{{ beszel_agent_network_mode }}"
+    env: "{{ beszel_agent_env_defaults | combine(beszel_agent_env_overrides, recursive=True) }}"
+    volumes: >-
+      {{
+        [
+          beszel_agent_docker_socket_path ~ ':/var/run/docker.sock:ro',
+          beszel_agent_data_directory ~ ':/var/lib/beszel-agent:rw'
+        ] + beszel_agent_extra_volumes
+      }}
+    labels: "{{ beszel_agent_labels }}"
+
+- name: 删除已禁用的 Beszel Agent 容器
+  when: not beszel_agent_enable | bool
+  community.docker.docker_container:
+    name: "{{ beszel_agent_container_name }}"
+    state: absent
+    force_kill: true

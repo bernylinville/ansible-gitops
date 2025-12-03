@@ -7,8 +7,6 @@
 #   - "iptables -A INPUT -p tcp -s 10.0.0.0/8 --dport 3000 -j ACCEPT"
 #   - "iptables -A INPUT -p tcp -s 172.16.0.0/12 --dport 3000 -j ACCEPT"
 #   - "iptables -A INPUT -p tcp -s 192.168.0.0/16 --dport 3000 -j ACCEPT"
-# Force Prometheus/node_exporter targets to advertise the private LAN IP only.
-# prometheus_node_exporter_address: "10.4.0.12"
 # Cloudflared host-specific configuration
 # cloudflared_data_directory: /opt/cloudflared
 # cloudflared_image_tag: "2025.11.1"
@@ -36,21 +34,12 @@
 #   - static_configs:
 #       - targets:
 #           - "{{ ansible_fqdn | default(ansible_host) | default(inventory_hostname) }}:9093"
-# prometheus_targets:
-#   node:
-#     - targets: "{{ groups['vps'] | default([]) | map('extract', hostvars, 'prometheus_node_exporter_target') | select | list }}"
-#       labels:
-#         env: lab
 # prometheus_scrape_configs:
 #   - job_name: "prometheus"
 #     metrics_path: "{{ prometheus_metrics_path }}"
 #     static_configs:
 #       - targets:
 #           - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:9090"
-#   - job_name: "node"
-#     file_sd_configs:
-#       - files:
-#           - "{{ prometheus_config_dir }}/file_sd/node.yml"
 #   - job_name: "alertmanager"
 #     static_configs:
 #       - targets:
@@ -110,3 +99,9 @@ new_api_enable: true
 new_api_image_tag: v0.9.27-patch.1
 new_api_bind_address: "{{ tailscale_ip }}"
 new_api_bind_port: 3000
+
+# ========== Beszel Agent 配置 ==========
+beszel_agent_enable: true
+beszel_agent_env_overrides:
+  KEY: "{{ beszel_agent_key | default('', true) }}"
+  TOKEN: "{{ beszel_agent_token | default('', true) }}"

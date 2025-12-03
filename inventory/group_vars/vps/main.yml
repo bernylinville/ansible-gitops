@@ -20,7 +20,6 @@ docker_daemon_options:
     max-size: "100m"
 firewall_allowed_tcp_ports:
   - "{{ security_ssh_port | default(22) }}"
-  - "{{ node_exporter_listen_port }}"
 firewall_state: started
 firewall_enabled_at_boot: true
 firewall_flush_rules_and_chains: false

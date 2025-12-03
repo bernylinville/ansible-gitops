@@ -15,3 +15,5 @@ roles/geerlingguy.*
 cloudflare-tunnel.json
 
 .DS_Store
+
+.venv/
