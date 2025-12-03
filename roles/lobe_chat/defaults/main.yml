@@ -82,8 +82,8 @@ lobe_chat_env_defaults:
   CLERK_WEBHOOK_SECRET: "{{ lobe_chat_clerk_webhook_secret }}"
   SEARCH_PROVIDERS: "{{ lobe_chat_search_providers }}"
   SEARXNG_URL: "{{ lobe_chat_searxng_url }}"
-  ENABLE_OIDC: ""
-  OIDC_JWKS_KEY: ""
+  ENABLE_OIDC: "{{ lobe_chat_enable_oidc }}"
+  OIDC_JWKS_KEY: "{{ lobe_chat_oidc_jwks_key }}"
 
 lobe_chat_env_overrides: {}
 
