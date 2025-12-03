@@ -19,7 +19,7 @@ lobe_chat_postgres_container_port: 5432
 # PostgreSQL 环境变量
 lobe_chat_postgres_db: lobe
 lobe_chat_postgres_user: lobe
-lobe_chat_postgres_password: ""  # 必须通过 secrets.yml 覆盖
+lobe_chat_postgres_password: "" # 必须通过 secrets.yml 覆盖
 
 lobe_chat_postgres_env_defaults:
   POSTGRES_DB: "{{ lobe_chat_postgres_db }}"
@@ -50,7 +50,7 @@ lobe_chat_database_driver: node
 lobe_chat_database_url: "postgresql://{{ lobe_chat_postgres_user }}:{{ lobe_chat_postgres_password }}@{{ lobe_chat_postgres_container_name }}:{{ lobe_chat_postgres_container_port }}/{{ lobe_chat_postgres_db }}"
 
 # 必须通过 secrets.yml 覆盖的敏感变量
-lobe_chat_key_vaults_secret: ""  # openssl rand -base64 32
+lobe_chat_key_vaults_secret: "" # openssl rand -base64 32
 lobe_chat_s3_access_key_id: ""
 lobe_chat_s3_secret_access_key: ""
 lobe_chat_s3_bucket: lobechat
@@ -62,6 +62,8 @@ lobe_chat_clerk_secret_key: ""
 lobe_chat_clerk_webhook_secret: ""
 lobe_chat_search_providers: ""
 lobe_chat_searxng_url: ""
+lobe_chat_enable_oidc: ""
+lobe_chat_oidc_jwks_key: ""
 
 lobe_chat_env_defaults:
   APP_URL: "{{ lobe_chat_app_url }}"
@@ -80,6 +82,8 @@ lobe_chat_env_defaults:
   CLERK_WEBHOOK_SECRET: "{{ lobe_chat_clerk_webhook_secret }}"
   SEARCH_PROVIDERS: "{{ lobe_chat_search_providers }}"
   SEARXNG_URL: "{{ lobe_chat_searxng_url }}"
+  ENABLE_OIDC: ""
+  OIDC_JWKS_KEY: ""
 
 lobe_chat_env_overrides: {}
 
