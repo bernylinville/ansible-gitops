@@ -51,6 +51,7 @@ traefik_env_overrides:
 # LobeChat 配置
 lobe_chat_enable: true
 lobe_chat_image_tag: main
+lobe_chat_app_url: "https://chat.{{ domain_name }}"
 lobe_chat_domain: "chat.{{ domain_name }}"
 lobe_chat_postgres_db: lobe
 lobe_chat_postgres_user: lobe
@@ -61,6 +62,6 @@ lobe_chat_searxng_url: "http://searxng:8080"
 # ========== SearXNG 配置 ==========
 searxng_enable: true
 searxng_image_tag: 2025.12.1-ab8224c93
-searxng_traefik_enabled: false  # 仅供内部 LobeChat 联网搜索使用，不对外暴露
+searxng_traefik_enabled: false # 仅供内部 LobeChat 联网搜索使用，不对外暴露
 searxng_instance_name: "DevOpsThink Search"
 searxng_contact_url: "mailto:admin@{{ domain_name }}"
