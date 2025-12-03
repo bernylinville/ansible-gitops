@@ -11,7 +11,7 @@ beszel_agent_data_directory: /opt/beszel-agent
 beszel_agent_docker_socket_path: /var/run/docker.sock
 beszel_agent_extra_volumes: []
 
-beszel_agent_listen_port: 45876
+beszel_agent_listen_port: "45876"
 beszel_agent_hub_scheme: http
 beszel_agent_hub_host: ""
 beszel_agent_hub_port: 8090
