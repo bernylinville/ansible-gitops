@@ -50,7 +50,7 @@ traefik_env_overrides:
 
 # LobeChat 配置
 lobe_chat_enable: true
-lobe_chat_image_tag: v1.143.2-1
+lobe_chat_image_tag: v1.143.2-2
 lobe_chat_app_url: "https://chat.{{ domain_name }}"
 lobe_chat_domain: "chat.{{ domain_name }}"
 lobe_chat_postgres_db: lobe
